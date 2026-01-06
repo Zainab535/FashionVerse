@@ -1,0 +1,237 @@
+/* ================= STORE NAVBAR ================= */
+.store-navbar {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  padding: 24px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 20;
+  color: #fff;
+}
+
+.menu {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.nav-actions img {
+  width: 18px;
+  margin-left: 20px;
+}
+
+/* ================= HERO (UPDATED: Center Aligned) ================= */
+.store-hero {
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+}
+
+.store-hero-content {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  width: 100%;
+  padding: 0 20px; /* Side padding for mobile safety */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Vertical Center */
+  align-items: center;     /* Horizontal Center */
+  text-align: center;      /* Text Center */
+}
+
+.store-hero-content h1 {
+  font-size: 96px;
+  letter-spacing: 6px;
+  margin-bottom: 20px; /* Thoda space niche */
+}
+
+.hero-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px; /* Buttons ke beech spacing */
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.primary-btn,
+.secondary-btn {
+  padding: 14px 28px;
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  letter-spacing: 1.8px;
+  border: 1px solid #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.primary-btn {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+.secondary-btn {
+  background: transparent;
+  color: #fff;
+}
+
+.hero-buttons button:hover {
+  transform: translateY(-2px);
+  background: #fff;
+  color: #000;
+}
+
+/* ================= PRODUCTS ================= */
+.products {
+  padding: 100px 80px;
+  background: #fff;
+  color: #000;
+}
+
+/* Filters (UPDATED: Centered & Spaced) */
+.filters {
+  display: flex;
+  justify-content: center; /* Buttons center ma aa gaye */
+  flex-wrap: wrap;         /* Mobile pa tut kar niche aa jayein */
+  gap: 20px;               /* Buttons ka aapas ma gap */
+  margin: 20px 0 50px;
+  margin-left: 13px;
+
+}
+
+.filters button {
+  padding: 10px 24px;      /* Thoda bada kiya click krny k liye */
+  border: 1px solid #ddd;
+  background: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.filters .active, 
+.filters button:hover {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.product-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ================= FOOTER ================= */
+.store-footer {
+  padding: 40px 80px;
+  display: flex;
+  justify-content: space-between;
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+  background-color: #f9f9f9; /* Optional: footer alag dikhny k liye */
+}
+
+/* ================= RESPONSIVE (MEDIA QUERIES) ================= */
+
+/* Tablet & Small Laptops (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .store-hero-content h1 {
+    font-size: 72px; /* Font thoda chota */
+  }
+
+  .hero-buttons {
+    gap: 14px;
+  }
+  
+  .products {
+    padding: 80px 40px;
+  }
+  
+  .grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 Columns grid */
+    gap: 30px;
+  }
+}
+
+/* Mobile Devices (max-width: 768px) */
+@media (max-width: 768px) {
+  /* Navbar adjustments */
+  .store-navbar {
+    padding: 20px;
+    flex-direction: column; /* Logo aur menu upar niche */
+    gap: 15px;
+    background: rgba(0,0,0,0.8); /* Background dark taake mobile pa text nazar aye */
+  }
+
+  .menu {
+    gap: 15px;
+    font-size: 12px;
+    padding: 0;
+  }
+
+  /* Hero adjustments */
+  .store-hero-content h1 {
+    font-size: 48px; /* Mobile pa font kafi chota */
+    letter-spacing: 2px;
+    line-height: 1.2;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 360px;
+    margin: 24px auto 0;
+  }
+
+  .hero-buttons button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Products adjustments */
+  .products {
+    padding: 60px 20px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr; /* 1 Column (Full width) */
+  }
+
+  .filters {
+    gap: 10px;
+  }
+  
+  .filters button {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  /* Footer adjustments */
+  .store-footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 40px 20px;
+    text-align: center;
+  }
+}

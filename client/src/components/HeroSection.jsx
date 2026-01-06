@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import splashImage from "../assets/images/fashion-model-splash.jpg";
 import arrowIcon from "../assets/icons/arrow-forward.svg";
+import { Link } from "react-router-dom";
+
 
 class HeroSection extends Component {
   render() {
@@ -22,10 +24,11 @@ class HeroSection extends Component {
             Experience luxury in three dimensions.
           </p>
 
-          <button className="enter-btn">
+          <Link to="/home" className="enter-btn">
             ENTER STORE
             <img src={arrowIcon} alt="arrow" />
-          </button>
+         </Link>
+
         </div>
       </section>
     );
