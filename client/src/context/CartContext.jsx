@@ -1,0 +1,68 @@
+import React, { Component, createContext } from "react";
+
+export const CartContext = createContext();
+
+export class CartProvider extends Component {
+  state = {
+    cart: [],
+    isOpen: false,
+  };
+
+  addToCart = (product) => {
+    const existing = this.state.cart.find(
+      (item) => item.id === product.id
+    );
+
+    if (existing) {
+      this.setState({
+        cart: this.state.cart.map((item) =>
+          item.id === product.id
+            ? { ...item, qty: item.qty + 1 }
+            : item
+        ),
+      });
+    } else {
+      this.setState({
+        cart: [...this.state.cart, { ...product, qty: 1 }],
+      });
+    }
+  };
+
+  increment = (id) => {
+    this.setState({
+      cart: this.state.cart.map((item) =>
+        item.id === id ? { ...item, qty: item.qty + 1 } : item
+      ),
+    });
+  };
+
+  decrement = (id) => {
+    this.setState({
+      cart: this.state.cart
+        .map((item) =>
+          item.id === id ? { ...item, qty: item.qty - 1 } : item
+        )
+        .filter((item) => item.qty > 0),
+    });
+  };
+
+  toggleCart = () => {
+    this.setState({ isOpen: !this.state.isOpen });
+  };
+
+  render() {
+    return (
+      <CartContext.Provider
+        value={{
+          ...this.state,
+          addToCart: this.addToCart,
+          increment: this.increment,
+          decrement: this.decrement,
+          toggleCart: this.toggleCart,
+        }}
+      >
+        {this.props.children}
+      </CartContext.Provider>
+    );
+  }
+}

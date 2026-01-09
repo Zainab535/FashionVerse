@@ -1,46 +1,79 @@
 import React, { Component } from "react";
+import { withRouter } from "../utils/withRouter";
+
+import coat from "../assets/images/product-1-wool-coat.jpg";
+import dress from "../assets/images/product-2-silk-dress.jpg";
+import bag from "../assets/images/product-3-leather-tote.jpg";
+import shoes from "../assets/images/product-4-puffer-jacket.jpg";
 
 class ProductGrid extends Component {
+  constructor(props) {
+    super(props);
+
+    this.products = [
+      {
+        id: 1,
+        brand: "Maison Margiela",
+        name: "Oversized Wool Coat",
+        price: "$1,250",
+        image: coat,
+      },
+      {
+        id: 2,
+        brand: "Rick Owens",
+        name: "Asymmetric Silk Dress",
+        price: "$890",
+        image: dress,
+      },
+      {
+        id: 3,
+        brand: "Rick Owens",
+        name: "Asymmetric Tote Bag",
+        price: "$799",
+        image: bag,
+      },
+      {
+        id: 4,
+        brand: "Rick Owens",
+        name: "Luxury Shoes",
+        price: "$899",
+        image: shoes,
+      },
+    ];
+  }
+
+ handleProductClick = (product) => {
+  this.props.navigate(`/product/${product.id}`, {
+    state: { product },
+  });
+};
+
+
   render() {
     return (
-      <section className="products">
+      <section className="product-section">
         <h2>New Arrivals</h2>
 
-        <div className="filters">
-          <button className="active">All</button>
-          <button>3D Ready</button>
-          <button>Runway</button>
-          <button>Essentials</button>
-          <button>Accessories</button>
+        <div className="product-grid">
+          {this.products.map((p) => (
+  <div
+    className="product-card"
+    key={p.id}
+    onClick={() => this.handleProductClick(p)}
+    style={{ cursor: "pointer" }}
+  >
+    <img src={p.image} alt={p.name} />
+    <span>{p.brand}</span>
+    <h4>{p.name}</h4>
+    <p>{p.price}</p>
+  </div>
+))}
+
         </div>
-
-        <div className="grid">
-          <div className="product-card">
-            <img src="/products/coat.jpg" alt="" />
-            <p className="brand">MAISON MARGIELA</p>
-            <h4>Oversized Wool Coat</h4>
-            <span>$1,250</span>
-          </div>
-
-          <div className="product-card">
-            <img src="/products/dress.jpg" alt="" />
-            <p className="brand">RICK OWENS</p>
-            <h4>Asymmetric Silk Dress</h4>
-            <span>$890</span>
-          </div>
-
-          <div className="product-card">
-            <img src="/products/bag.jpg" alt="" />
-            <p className="brand">BOTTEGA VENETA</p>
-            <h4>Structured Leather Tote</h4>
-            <span>$2,400</span>
-          </div>
-        </div>
-
-        <button className="load-more">LOAD MORE PRODUCTS</button>
       </section>
     );
   }
 }
 
-export default ProductGrid;
+/* 🔗 withRouter injects navigate into props */
+export default withRouter(ProductGrid);
