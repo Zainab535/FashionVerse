@@ -8,6 +8,9 @@ import SignupPage from "./Pages/signin";
 import AdminDashboard from "./admin/AdminDashboard";
 import ManageBrands from "./admin/ManageBrands";
 import ManageUsers from "./admin/ManageUsers";
+import ManageProducts from "./admin/ManageProducts";
+import ManageSettings from "./admin/ManageSettings";
+import ManageVerifications from "./admin/ManageVerifications";
 
 
 class App extends Component {
@@ -23,8 +26,9 @@ class App extends Component {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<ManageUsers />} />
           <Route path="/admin/brands" element={<ManageBrands />} />
-          
-
+          <Route path="/admin/products" element={<ManageProducts />} />
+          <Route path="/admin/settings" element={<ManageSettings />} />
+          <Route path="/admin/verifications" element={<ManageVerifications />} />
         </Routes>
       </Router>
     );
