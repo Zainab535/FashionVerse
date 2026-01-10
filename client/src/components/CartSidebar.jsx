@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { CartContext } from "../context/CartContext";
+import { withRouter } from "../utils/withRouter";
 
 class CartSidebar extends Component {
   static contextType = CartContext;
@@ -75,9 +76,16 @@ class CartSidebar extends Component {
             <button className="cart-secondary" onClick={toggleCart}>
               Continue Shopping
             </button>
-            <button className="cart-primary">
-              Proceed to Checkout
-            </button>
+           <button
+  className="cart-primary"
+  onClick={() => {
+    toggleCart();
+    this.props.navigate("/checkout/shipping");
+  }}
+>
+  Proceed to Checkout
+</button>
+
           </div>
         </div>
       </div>
@@ -85,4 +93,5 @@ class CartSidebar extends Component {
   }
 }
 
-export default CartSidebar;
+export default withRouter(CartSidebar);
+

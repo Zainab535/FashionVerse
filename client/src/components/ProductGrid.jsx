@@ -11,35 +11,39 @@ class ProductGrid extends Component {
     super(props);
 
     this.products = [
-      {
-        id: 1,
-        brand: "Maison Margiela",
-        name: "Oversized Wool Coat",
-        price: "$1,250",
-        image: coat,
-      },
-      {
-        id: 2,
-        brand: "Rick Owens",
-        name: "Asymmetric Silk Dress",
-        price: "$890",
-        image: dress,
-      },
-      {
-        id: 3,
-        brand: "Rick Owens",
-        name: "Asymmetric Tote Bag",
-        price: "$799",
-        image: bag,
-      },
-      {
-        id: 4,
-        brand: "Rick Owens",
-        name: "Luxury Shoes",
-        price: "$899",
-        image: shoes,
-      },
-    ];
+  {
+    id: 1,
+    brand: "Maison Margiela",
+    name: "Oversized Wool Coat",
+    price: "$1,250",
+    image: coat,                 // ✅ MAIN IMAGE
+    images: [coat, coat, coat, coat], // ✅ GALLERY
+  },
+  {
+    id: 2,
+    brand: "Rick Owens",
+    name: "Asymmetric Silk Dress",
+    price: "$890",
+    image: dress,
+    images: [dress, dress, dress, dress],
+  },
+  {
+    id: 3,
+    brand: "Rick Owens",
+    name: "Asymmetric Tote Bag",
+    price: "$799",
+    image: bag,
+    images: [bag, bag, bag, bag],
+  },
+  {
+    id: 4,
+    brand: "Rick Owens",
+    name: "Luxury Shoes",
+    price: "$899",
+    image: shoes,
+    images: [shoes, shoes, shoes, shoes],
+  },
+];
   }
 
  handleProductClick = (product) => {

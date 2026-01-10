@@ -3,10 +3,27 @@ import React, { Component, createContext } from "react";
 export const CartContext = createContext();
 
 export class CartProvider extends Component {
-  state = {
-    cart: [],
-    isOpen: false,
-  };
+  constructor(props) {
+    super(props);
+
+    // 🔥 LOAD CART FROM LOCALSTORAGE
+    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    this.state = {
+      cart: savedCart,
+      isOpen: false,
+    };
+  }
+
+  // 🔥 SAVE CART TO LOCALSTORAGE (AFTER EVERY UPDATE)
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.cart !== this.state.cart) {
+      localStorage.setItem(
+        "cart",
+        JSON.stringify(this.state.cart)
+      );
+    }
+  }
 
   addToCart = (product) => {
     const existing = this.state.cart.find(
