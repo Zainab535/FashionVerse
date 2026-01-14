@@ -1,115 +1,80 @@
-import User from '../models/User.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-// Register User
+// REGISTER
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: 'User already exists' });
+    // check user exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash password
+    // hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
-    user = new User({
+    // create user
+    const user = await User.create({
       name,
       email,
       password: hashedPassword,
+      role
     });
 
-    await user.save();
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET || 'your_jwt_secret_key_here',
-      { expiresIn: process.env.JWT_EXPIRE || '7d' }
-    );
-
     res.status(201).json({
-      message: 'User registered successfully',
-      token,
+      message: "User registered successfully",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-      },
+        role: user.role
+      }
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Login User
+// LOGIN
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
-    const user = await User.findOne({ email }).select('+password');
+    // find user
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Check password
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-    if (!isPasswordMatch) {
-      return res.status(400).json({ message: 'Invalid password' });
+    // compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate JWT token
+    // generate token
     const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET || 'your_jwt_secret_key_here',
-      { expiresIn: process.env.JWT_EXPIRE || '7d' }
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
     res.json({
-      message: 'Logged in successfully',
+      message: "Login successful",
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-      },
+        role: user.role
+      }
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
-// Get User Profile
-export const getUserProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// Update User Profile
-export const updateUserProfile = async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      req.body,
-      { new: true }
-    );
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json({ message: 'Profile updated successfully', user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
