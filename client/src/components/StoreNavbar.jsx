@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Link } from "react-router-dom";
 import logo from "../assets/images/brand2.jpg";
 import { CartContext } from "../context/CartContext";
 import wishlistIcon from "../assets/icons/my-wish-list.png";
@@ -29,8 +30,8 @@ class StoreNavbar extends Component {
         <nav className="nav-links">
           <span>New Arrivals</span>
           <span>Brands</span>
-          <span>About</span>
-          <span>Contact</span>
+          <Link to="/about" className="nav-link-item">About</Link>
+          <Link to="/contact" className="nav-link-item">Contact</Link>
           <span className="sale">3D Mall</span>
         </nav>
 
@@ -62,11 +63,13 @@ class StoreNavbar extends Component {
   </div>
 
   {/* Profile */}
-  <img
-    src={userIcon}
-    alt="Profile"
-    className="nav-icon"
-  />
+  <Link to="/profile" className="profile-link">
+    <img
+      src={userIcon}
+      alt="Profile"
+      className="nav-icon"
+    />
+  </Link>
 </div>
 
       </header>

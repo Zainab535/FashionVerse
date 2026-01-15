@@ -160,7 +160,7 @@
 /* TABLE HEAD */
 .cart-table-head {
   display: grid;
-  grid-template-columns: 2.5fr 1.2fr 1fr;
+  grid-template-columns: 2.5fr 1.2fr 1fr 0.4fr;
   font-size: 13px;
   color: #777;
   padding-bottom: 12px;
@@ -182,12 +182,30 @@
   margin-top: 12px;
 }
 
+/* Hide scrollbar */
+.cart-items::-webkit-scrollbar {
+  display: none;
+}
+
+.cart-items {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 .cart-row {
   display: grid;
-  grid-template-columns: 2.5fr 1.2fr 1fr;
+  grid-template-columns: 2.5fr 1.2fr 1fr 0.4fr;
   align-items: center;
   padding: 18px 0;
   border-bottom: 1px solid #f0f0f0;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.cart-row:hover {
+  background: #f9f7f4;
+  padding: 18px 8px;
+  border-radius: 6px;
 }
 
 .cart-row > div {
@@ -245,6 +263,35 @@
   font-size: 14px;
   font-weight: 500;
   text-align: right;
+}
+
+/* REMOVE BUTTON */
+.cart-remove {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #d32f2f;
+  background: transparent;
+  border-radius: 50%;
+  color: #d32f2f;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.cart-remove:hover {
+  background: #d32f2f;
+  color: #fff;
+  transform: scale(1.15);
+}
+
+.cart-remove:active {
+  transform: scale(0.9);
 }
 
 /* FOOTER */
@@ -375,10 +422,33 @@
    REVIEWS – LUXURY TEXT STYLE
 ================================ */
 
+@keyframes slideInReview {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .reviews-section {
   padding: 120px 10%;
-  background: #fafafa;
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
   text-align: center;
+  animation: slideInReview 0.8s ease-out;
 }
 
 .reviews-section h2 {
@@ -386,6 +456,11 @@
   font-weight: 500;
   letter-spacing: 0.5px;
   margin-bottom: 12px;
+  background: linear-gradient(135deg, #1143b8 0%, #0d2f85 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeInScale 0.7s ease-out;
 }
 
 .reviews-meta {
@@ -394,11 +469,13 @@
   align-items: center;
   gap: 14px;
   margin-bottom: 50px;
+  animation: fadeInScale 0.9s ease-out 0.2s both;
 }
 
 .reviews-meta .stars {
   font-size: 18px;
   letter-spacing: 3px;
+  color: #ffa500;
 }
 
 .reviews-meta .count {
@@ -419,39 +496,73 @@
   max-width: 520px;
   padding: 50px 40px;
   background: #ffffff;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.06);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
   border-radius: 16px;
-  transition: all 0.4s ease;
+  border: 1px solid #f0e8e4;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: fadeInScale 0.8s ease-out 0.3s both;
+}
+
+.review-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 30px 80px rgba(17, 67, 184, 0.12);
+  border-color: #e8ddd5;
 }
 
 .review-text {
   font-size: 18px;
-  line-height: 1.7;
-  color: #222;
+  line-height: 1.8;
+  color: #333;
   margin-bottom: 22px;
   font-style: italic;
+  position: relative;
+}
+
+.review-text::before {
+  content: '"';
+  font-size: 42px;
+  color: #1143b8;
+  opacity: 0.2;
+  position: absolute;
+  top: -20px;
+  left: -10px;
+  font-family: Georgia, serif;
 }
 
 .review-author {
   font-size: 14px;
   letter-spacing: 1px;
-  color: #666;
+  color: #1143b8;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 /* ARROWS */
 .arrow {
   background: none;
-  border: none;
-  font-size: 46px;
+  border: 2px solid #ddd;
+  font-size: 20px;
   cursor: pointer;
-  color: #bbb;
-  transition: color 0.3s ease, transform 0.3s ease;
+  color: #999;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .arrow:hover {
-  color: #000;
-  transform: scale(1.15);
+  color: #1143b8;
+  border-color: #1143b8;
+  background: #f5f0eb;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(17, 67, 184, 0.15);
+}
+
+.arrow:active {
+  transform: scale(0.95);
 }
 
 /* RESPONSIVE */

@@ -6,7 +6,7 @@ class CartSidebar extends Component {
   static contextType = CartContext;
 
   render() {
-    const { cart, isOpen, increment, decrement, toggleCart } = this.context;
+    const { cart, isOpen, increment, decrement, removeFromCart, toggleCart } = this.context;
 
     const total = cart.reduce(
       (sum, item) =>
@@ -61,6 +61,15 @@ class CartSidebar extends Component {
                   item.qty
                 ).toFixed(2)}
               </div>
+
+              {/* Remove Button */}
+              <button 
+                className="cart-remove"
+                onClick={() => removeFromCart(item.id)}
+                title="Remove item"
+              >
+                ✕
+              </button>
             </div>
           ))}
         </div>

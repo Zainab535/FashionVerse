@@ -5,6 +5,10 @@ import LandingPage from "./Pages/LandingPage";
 import HomePage from "./Pages/HomePage";
 import LoginPage from "./Pages/login";
 import SignupPage from "./Pages/signin";
+import AboutPage from "./Pages/AboutPage";
+import ContactPage from "./Pages/ContactPage";
+import UserProfile from "./Pages/UserProfile";
+import BrandProducts from "./Pages/BrandProducts";
 import AdminDashboard from "./admin/AdminDashboard";
 import ManageBrands from "./admin/ManageBrands";
 import ManageUsers from "./admin/ManageUsers";
@@ -28,6 +32,10 @@ class App extends Component {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/home" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/profile" element={<UserProfile />} />
+            <Route path="/brand/:brandId" element={<BrandProducts />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/checkout/shipping" element={<ShippingPage />} />
             <Route path="/checkout/payment" element={<PaymentPage />} />

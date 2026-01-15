@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "../styles/auth.css";
+import "../styles/Auth.css";
 import api from "../api";
 
 const LoginPage = () => {
@@ -37,29 +37,53 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="auth-bg">
-      <div className="auth-page">
-        <h2>Login</h2>
-
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+    <div className="login-container">
+      <div className="login-left">
+        <div className="login-logo">FashionVerse</div>
+        <img 
+          src="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&h=800&fit=crop" 
+          alt="Fashion Model" 
+          className="login-model-image"
         />
+      </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+      <div className="login-right">
+        <div className="login-form-container">
+          <h1 className="login-title">Login</h1>
+          <p className="login-subtitle">Access your curated collection and exclusive pieces.</p>
 
-        <button onClick={handleLogin}>Login</button>
+          <div className="login-form-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="login-input"
+            />
+          </div>
+          <div className="login-form-group">
+            <div className="login-label-row">
+              <label>Password</label>
+              <Link to="/forgot-password" className="login-forgot">Forgot?</Link>
+            </div>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="login-input"
+            />
+          </div>
 
-        <p>
-          Don’t have an account? <Link to="/signup">Sign up</Link>
-        </p>
+          <button onClick={handleLogin} className="login-button">
+            Login
+          </button>
+
+          <p className="login-signup-text">
+            New to FashionVerse? <Link to="/signin" className="login-signup-link">Register Now</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

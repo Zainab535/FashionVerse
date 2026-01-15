@@ -69,6 +69,33 @@ body {
   width: 100%;
 }
 
+.nav-link-item {
+  text-decoration: none;
+  color: #111;
+  position: relative;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.nav-link-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0;
+  height: 2px;
+  background: #000;
+  transition: 0.3s ease;
+}
+
+.nav-link-item:hover {
+  color: #666;
+}
+
+.nav-link-item:hover::after {
+  width: 100%;
+}
+
 .nav-links .sale {
   color: #d32f2f;
 }
@@ -112,6 +139,25 @@ body {
   position: relative;
   display: flex;
   align-items: center;
+  cursor: pointer;
+}
+
+/* PROFILE LINK */
+.profile-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.profile-link .nav-icon {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.profile-link:hover .nav-icon {
+  transform: translateY(-2px);
+  opacity: 0.75;
 }
 
 /* BAG COUNT BADGE */
@@ -191,8 +237,8 @@ body {
    BRANDS
 ========================= */
 .brand-section {
-  padding: 100px 8%;
-  background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+  padding: 80px 8%;
+  background: #ffffff;
 }
 
 .brand-section h2 {
@@ -201,14 +247,77 @@ body {
   letter-spacing: 1px;
   margin-bottom: 60px;
   color: #111;
-  text-align: center;
+  text-align: left;
+}
+
+.brand-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.scroll-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  color: #000;
+  font-weight: 300;
+}
+
+.scroll-btn:hover {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+  transform: scale(1.05);
 }
 
 .brand-scroll {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 40px;
-  padding: 0;
+  display: flex;
+  gap: 50px;
+  overflow-x: auto;
+  padding: 20px 0;
+  scroll-behavior: smooth;
+  flex: 1;
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+
+.brand-scroll::-webkit-scrollbar {
+  height: 0;
+  display: none;
+}
+
+.brand-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  display: none;
+}
+
+.brand-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  display: none;
+}
+
+.brand-scroll::-webkit-scrollbar-thumb:hover {
+  background: transparent;
+  display: none;
+}
+
+.brand-card-link {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 200px;
 }
 
 .brand-card {
@@ -216,48 +325,28 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 50px 30px;
-  background: #ffffff;
   text-align: center;
-  border-radius: 12px;
-  border: 1px solid #e0e0e0;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  position: relative;
-  overflow: hidden;
-}
-
-.brand-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.02), transparent);
-  pointer-events: none;
+  width: 100%;
+  transition: transform 0.3s ease;
+  cursor: pointer;
 }
 
 .brand-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  border-color: #000;
+  transform: translateY(-5px);
 }
 
 .brand-card img {
   width: 140px;
   height: 140px;
-  margin-bottom: 30px;
   border-radius: 50%;
   object-fit: cover;
+  margin-bottom: 20px;
+  transition: transform 0.3s ease;
   border: 3px solid #f0f0f0;
-  transition: all 0.4s ease;
-  padding: 12px;
-  background: #f9f9f9;
 }
 
 .brand-card:hover img {
-  transform: scale(1.08);
+  transform: scale(1.05);
   border-color: #000;
 }
 
@@ -270,18 +359,18 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 14px;
-  margin-top: 20px;
+  gap: 12px;
   position: relative;
   z-index: 1;
 }
 
 .brand-actions button,
-.brand-overlay button {
-  padding: 10px 20px;
-  font-size: 13px;
+.brand-overlay button,
+.overlay-btn {
+  padding: 9px 18px;
+  font-size: 12px;
   font-weight: 600;
-  border-radius: 24px;
+  border-radius: 20px;
   border: 1.5px solid #000;
   background: #fff;
   color: #000;
@@ -292,21 +381,24 @@ body {
 }
 
 .brand-actions button:hover,
-.brand-overlay button:hover {
+.brand-overlay button:hover,
+.overlay-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
 }
 
 .brand-actions button.dark,
-.brand-overlay button.dark {
+.brand-overlay button.dark,
+.overlay-btn.dark {
   background: #000;
   color: #fff;
   border-color: #000;
 }
 
 .brand-actions button.dark:hover,
-.brand-overlay button.dark:hover {
+.brand-overlay button.dark:hover,
+.overlay-btn.dark:hover {
   background: #222;
-  border-color: #222;
 }
 
 /* =========================
@@ -518,8 +610,7 @@ body {
 
   /* Brands */
   .brand-scroll {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
+    gap: 40px;
   }
 
   /* Products */
@@ -570,17 +661,16 @@ body {
   }
 
   .brand-scroll {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 30px;
   }
 
   .brand-card {
-    padding: 30px 20px;
+    min-width: 180px;
   }
 
   .brand-card img {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
   }
 
   /* Products */
@@ -620,18 +710,16 @@ body {
 
   /* Brands */
   .brand-scroll {
-    grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 25px;
   }
 
   .brand-card {
-    padding: 20px 15px;
+    min-width: 150px;
   }
 
   .brand-card img {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 15px;
+    width: 100px;
+    height: 100px;
   }
 
   /* Product Images */

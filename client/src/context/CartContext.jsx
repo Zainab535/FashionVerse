@@ -63,6 +63,12 @@ export class CartProvider extends Component {
     });
   };
 
+  removeFromCart = (id) => {
+    this.setState({
+      cart: this.state.cart.filter((item) => item.id !== id),
+    });
+  };
+
   toggleCart = () => {
     this.setState({ isOpen: !this.state.isOpen });
   };
@@ -75,6 +81,7 @@ export class CartProvider extends Component {
           addToCart: this.addToCart,
           increment: this.increment,
           decrement: this.decrement,
+          removeFromCart: this.removeFromCart,
           toggleCart: this.toggleCart,
         }}
       >
