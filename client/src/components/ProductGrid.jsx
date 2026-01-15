@@ -64,12 +64,13 @@ class ProductGrid extends Component {
     className="product-card"
     key={p.id}
     onClick={() => this.handleProductClick(p)}
-    style={{ cursor: "pointer" }}
   >
     <img src={p.image} alt={p.name} />
-    <span>{p.brand}</span>
-    <h4>{p.name}</h4>
-    <p>{p.price}</p>
+    <div className="product-card-content">
+      <span>{p.brand}</span>
+      <h4>{p.name}</h4>
+      <p>{p.price}</p>
+    </div>
   </div>
 ))}
 
