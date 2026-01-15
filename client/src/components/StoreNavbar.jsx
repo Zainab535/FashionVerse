@@ -1,6 +1,10 @@
 import React, { Component } from "react";
 import logo from "../assets/images/brand2.jpg";
 import { CartContext } from "../context/CartContext";
+import wishlistIcon from "../assets/icons/my-wish-list.png";
+import bagIcon from "../assets/icons/shopping-bag.svg";
+import userIcon from "../assets/icons/person.svg";
+import searchIcon from "../assets/icons/search.svg";
 
 class StoreNavbar extends Component {
 
@@ -24,27 +28,47 @@ class StoreNavbar extends Component {
         {/* CENTER */}
         <nav className="nav-links">
           <span>New Arrivals</span>
-          <span>Designers</span>
-          <span>Clothing</span>
-          <span>Shoes</span>
-          <span>Accessories</span>
-          <span className="sale">Sale</span>
+          <span>Brands</span>
+          <span>About</span>
+          <span>Contact</span>
+          <span className="sale">3D Mall</span>
         </nav>
 
         {/* RIGHT ICONS */}
-        <div className="nav-icons">
-          <span>♡</span>
+       <div className="nav-icons">
+    <img
+    src={searchIcon}
+    alt="search"
+    className="nav-icon"
+  />
+  {/* Wishlist */}
+  <img
+    src={wishlistIcon}
+    alt="Wishlist"
+    className="nav-icon"
+  />
 
-          {/* 🔥 BAG ICON WITH COUNT */}
-          <span className="bag-icon" onClick={toggleCart}>
-            👜
-            {count > 0 && (
-              <span className="bag-count">{count}</span>
-            )}
-          </span>
+  {/* Cart / Bag */}
+  <div className="bag-icon" onClick={toggleCart}>
+    <img
+      src={bagIcon}
+      alt="Cart"
+      className="nav-icon"
+    />
 
-          <span>👤</span>
-        </div>
+    {count > 0 && (
+      <span className="bag-count">{count}</span>
+    )}
+  </div>
+
+  {/* Profile */}
+  <img
+    src={userIcon}
+    alt="Profile"
+    className="nav-icon"
+  />
+</div>
+
       </header>
     );
   }

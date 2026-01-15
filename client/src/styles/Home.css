@@ -82,16 +82,39 @@ body {
 .nav-icons span {
   cursor: pointer;
 }
-/* ===============================
-   BAG COUNT BADGE
-================================ */
+/* =========================
+   NAV ICONS (ASSETS BASED)
+========================= */
 
-.bag-icon {
-  position: relative;
-  cursor: pointer;
-  font-size: 18px;
+.nav-icons {
+  display: flex;
+  align-items: center;
+  gap: 22px;
 }
 
+/* ICON IMAGES */
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  filter: invert(0); /* white → black */
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* Hover effect (luxury feel) */
+.nav-icon:hover {
+  transform: translateY(-2px);
+  opacity: 0.75;
+}
+
+/* BAG ICON WRAPPER */
+.bag-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* BAG COUNT BADGE */
 .bag-count {
   position: absolute;
   top: -6px;
@@ -104,6 +127,9 @@ body {
   border-radius: 50%;
   min-width: 18px;
   text-align: center;
+}
+.nav-icons span {
+  cursor: pointer;
 }
 
 
