@@ -1,55 +1,34 @@
-// import React from "react";
-// import { Link } from "react-router-dom";
-// import "../styles/auth.css";
-
-
-// const SignupPage = () => {
-//   return (
-//     <div className="auth-page">
-//       <h2>Sign Up</h2>
-
-//       <input type="text" placeholder="Full Name" />
-//       <input type="email" placeholder="Email" />
-//       <input type="password" placeholder="Password" />
-
-//       {/* ROLE SELECTION */}
-//       <select>
-//         <option value="">Select Role</option>
-//         <option value="user">User</option>
-//         <option value="admin">Admin</option>
-//         <option value="brand">Brand</option>
-//       </select>
-
-//       <button>Create Account</button>
-
-//       <p>
-//         Already have an account? <Link to="/login">Login</Link>
-//       </p>
-//     </div>
-//   );
-// };
-
-// export default SignupPage;
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
+import api from "../api";
 
 const SignupPage = () => {
   const navigate = useNavigate();
-  const [role, setRole] = useState("");
 
-  const handleSignup = () => {
-    if (!role) {
-      alert("Please select a role");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSignup = async () => {
+    if (!name || !email || !password) {
+      alert("All fields are required");
       return;
     }
 
-    // 🔹 SAVE ROLE (frontend only)
-    localStorage.setItem("role", role);
+    try {
+      await api.post("/auth/register", {
+        name,
+        email,
+        password
+      });
 
-    alert("Signup successful!");
-    navigate("/login");
+      alert("Account created successfully. Please login.");
+      navigate("/login");
+
+    } catch (error) {
+      alert("Signup failed. Email may already exist.");
+    }
   };
 
   return (
@@ -57,16 +36,26 @@ const SignupPage = () => {
       <div className="auth-page">
         <h2>Sign Up</h2>
 
-        <input type="text" placeholder="Full Name" />
-        <input type="email" placeholder="Email" />
-        <input type="password" placeholder="Password" />
+        <input
+          type="text"
+          placeholder="Full Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
 
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="">Select Role</option>
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
-          <option value="brand">Brand</option>
-        </select>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
         <button onClick={handleSignup}>Create Account</button>
 

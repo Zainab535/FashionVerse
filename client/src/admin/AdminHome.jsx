@@ -1,5 +1,6 @@
 import { Component } from "react";
 import "../styles/admin/AdminDashboard.css";
+import api from "../api";
 
 class StatCard extends Component {
   render() {
@@ -87,87 +88,80 @@ class TaskItem extends Component {
 }
 
 class AdminHome extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      stats: [
-        {
-          icon: "icon-users",
-          iconColor: "gray",
-          label: "New Users",
-          value: "2,543",
-          change: "+8.2%",
-          changeType: "positive"
-        },
-        {
-          icon: "icon-store",
-          iconColor: "gray",
-          label: "Active Brands",
-          value: "842",
-          change: "+0.0%",
-          changeType: "neutral"
-        },
-        {
-          icon: "icon-products",
-          iconColor: "gray",
-          label: "Total Products",
-          value: "12,847",
-          change: "+15.3%",
-          changeType: "positive"
-        }
-      ],
-      recentActivities: [
-        {
-          icon: "icon-user",
-          iconColor: "gray",
-          title: "New User Registration",
-          description: "Alex Chen joined the platform",
-          status: "Completed",
-          time: "2 mins ago"
-        },
-        {
-          icon: "icon-shopping",
-          iconColor: "gray",
-          title: "New Order #8821",
-          description: "Value: $245.00",
-          status: "Processing",
-          time: "15 mins ago"
-        },
-        {
-          icon: "icon-alert",
-          iconColor: "gray",
-          title: "Brand Verification",
-          description: "EcoWear submitted documents",
-          status: "Pending",
-          time: "1 hour ago"
-        },
-        {
-          icon: "icon-package",
-          iconColor: "gray",
-          title: "Stock Update",
-          description: "CyberStyle Fashion added 12 items",
-          status: "Completed",
-          time: "3 hours ago"
-        }
-      ],
-      pendingTasks: [
-        {
-          icon: "icon-alert-warning",
-          iconColor: "gray",
-          title: "Brand Verifications",
-          description: "3 new requests waiting",
-          actionText: "Review"
-        },
-        {
-          icon: "icon-alert-danger",
-          iconColor: "gray",
-          title: "Reported Items",
-          description: "5 items flagged by users",
-          actionText: "Review"
-        }
-      ]
-    };
+  state = {
+    stats: [],
+    recentActivities: [],
+    pendingTasks: []
+  };
+
+
+  componentDidMount() {
+    this.fetchDashboardData();
   }
+
+  fetchDashboardData = async () => {
+    try {
+      const res = await api.get("/admin/stats");
+      console.log("ADMIN STATS RESPONSE:", res.data);
+
+      const {
+        totalUsers,
+        totalBrands,
+        totalProducts,
+        pendingBrands,
+        recentActivities
+      } = res.data;
+
+      this.setState({
+        stats: [
+          {
+            icon: "icon-users",
+            iconColor: "gray",
+            label: "Total Users",
+            value: totalUsers,
+            change: "+12%",
+            changeType: "positive"
+          },
+          {
+            icon: "icon-store",
+            iconColor: "gray",
+            label: "Total Brands",
+            value: totalBrands,
+            change: "+5%",
+            changeType: "positive"
+          },
+          {
+            icon: "icon-products",
+            iconColor: "gray",
+            label: "Total Products",
+            value: totalProducts,
+            change: "+18%",
+            changeType: "positive"
+          }
+        ],
+        recentActivities: recentActivities || [],
+        pendingTasks: [
+          {
+            icon: "icon-alert-warning",
+            iconColor: "gray",
+            title: "Brand Verifications",
+            description: `${pendingBrands} new requests waiting`,
+            actionText: "Review"
+          },
+          {
+            icon: "icon-alert-danger",
+            iconColor: "gray",
+            title: "Reported Items",
+            description: "5 items flagged by users",
+            actionText: "Review"
+          }
+        ]
+      });
+    } catch (error) {
+      console.error("Dashboard error:", error);
+    }
+  };
+
 
   handleQuickAction = (action) => {
     console.log(`Quick action clicked: ${action}`);

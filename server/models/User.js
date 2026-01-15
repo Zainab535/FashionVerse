@@ -1,68 +1,32 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Please provide a name'],
-      trim: true,
-      maxlength: 50,
+      required: true,
+      trim: true
     },
+
     email: {
       type: String,
-      required: [true, 'Please provide an email'],
+      required: true,
       unique: true,
-      lowercase: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        'Please provide a valid email',
-      ],
+      lowercase: true
     },
+
     password: {
       type: String,
-      required: [true, 'Please provide a password'],
-      minlength: 6,
-      select: false,
+      required: true
     },
-    phone: {
-      type: String,
-      default: null,
-    },
-    avatar: {
-      type: String,
-      default: null,
-    },
-    address: {
-      type: String,
-      default: null,
-    },
-    city: {
-      type: String,
-      default: null,
-    },
-    state: {
-      type: String,
-      default: null,
-    },
-    zipCode: {
-      type: String,
-      default: null,
-    },
-    country: {
-      type: String,
-      default: null,
-    },
+
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
+      enum: ["admin", "brandOwner", "user"],
+      default: "user"
+    }
   },
   { timestamps: true }
 );
 
-export default mongoose.model('User', userSchema);
+export default mongoose.model("User", userSchema);
