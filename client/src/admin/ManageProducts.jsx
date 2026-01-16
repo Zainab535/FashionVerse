@@ -1,214 +1,479 @@
-import { Component } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "./AdminLayout";
-// import "../styles/admin/AdminProducts.css";
+import api from "../api";
+import "../styles/admin/AdminProducts.css";
 
-class ManageProducts extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      products: [
-        {
-          id: 1,
-          name: "Classic White Sneakers",
-          brand: "Nike",
-          price: "$89.99",
-          stock: 45,
-          status: "Active",
-          category: "Footwear"
-        },
-        {
-          id: 2,
-          name: "Denim Jacket",
-          brand: "Zara",
-          price: "$120.00",
-          stock: 12,
-          status: "Active",
-          category: "Outerwear"
-        },
-        {
-          id: 3,
-          name: "Summer Dress",
-          brand: "Local Brand",
-          price: "$65.50",
-          stock: 0,
-          status: "Out of Stock",
-          category: "Dresses"
-        },
-        {
-          id: 4,
-          name: "Leather Wallet",
-          brand: "Adidas",
-          price: "$45.00",
-          stock: 89,
-          status: "Active",
-          category: "Accessories"
-        }
-      ],
-      searchQuery: "",
-      filterStatus: "All"
-    };
-  }
+const ManageProducts = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [categories, setCategories] = useState([]);
 
-  handleDelete = (productId) => {
+  // Add Product Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    description: "",
+    price: "",
+    stock: "",
+    category: "",
+    brand: "", // In a real app, this might be auto-selected based on logged-in user or a dropdown
+    images: []
+  });
+  const [addingProduct, setAddingProduct] = useState(false);
+
+  useEffect(() => {
+    fetchCategories();
+    fetchProducts();
+  }, [searchQuery, filterStatus, filterCategory, currentPage]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get('/admin/categories');
+      setCategories(response.data || []);
+      // Set default category for new product if available
+      if (response.data && response.data.length > 0) {
+        setNewProduct(prev => ({ ...prev, category: response.data[0].name }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (filterStatus !== 'all') params.append('status', filterStatus);
+      if (filterCategory !== 'all') params.append('category', filterCategory);
+      params.append('page', currentPage);
+      params.append('limit', '10');
+
+      const response = await api.get(`/admin/products?${params}`);
+      setProducts(response.data.products || []);
+      setTotalProducts(response.data.total || 0);
+      setTotalPages(response.data.pages || 1);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to fetch products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (productId) => {
+    try {
+      await api.put(`/admin/products/${productId}/toggle-status`);
+      setProducts(products.map(product =>
+        product._id === productId ? { ...product, isActive: !product.isActive } : product
+      ));
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to toggle product status");
+    }
+  };
+
+  const handleDelete = async (productId) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
-      this.setState(prevState => ({
-        products: prevState.products.filter(product => product.id !== productId)
-      }));
+      try {
+        await api.delete(`/admin/products/${productId}`);
+        setProducts(products.filter(product => product._id !== productId));
+        setTotalProducts(prev => prev - 1);
+      } catch (err) {
+        alert(err.response?.data?.message || "Failed to delete product");
+      }
     }
-  }
+  };
 
-  handleSearch = (e) => {
-    this.setState({ searchQuery: e.target.value });
-  }
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
 
-  handleFilterChange = (e) => {
-    this.setState({ filterStatus: e.target.value });
-  }
+  const handleStatusFilter = (e) => {
+    setFilterStatus(e.target.value);
+    setCurrentPage(1);
+  };
 
-  getFilteredProducts = () => {
-    const { products, searchQuery, filterStatus } = this.state;
+  const handleCategoryFilter = (e) => {
+    setFilterCategory(e.target.value);
+    setCurrentPage(1);
+  };
 
-    let filtered = products;
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
-    // Apply search filter
-    if (searchQuery) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  // Add Product Handlers
+  const handleAddProductChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddProductSubmit = async (e) => {
+    e.preventDefault();
+    if (!newProduct.name || !newProduct.price || !newProduct.category) {
+      alert("Please fill in all required fields");
+      return;
     }
 
-    // Apply status filter
-    if (filterStatus !== "All") {
-      filtered = filtered.filter(product => product.status === filterStatus);
+    try {
+      setAddingProduct(true);
+      // Construct payload - ignoring images for now as verified by user request for 'dropdown connection'
+      // Construct payload - ignoring images for now as verified by user request for 'dropdown connection'
+      const payload = {
+        ...newProduct,
+        price: parseFloat(newProduct.price),
+        stock: parseInt(newProduct.stock) || 0,
+      };
+
+      // Remove brand if empty string to avoid ObjectId CastError on server
+      if (!payload.brand) {
+        delete payload.brand;
+      }
+
+      await api.post('/admin/products', payload);
+      alert("Product added successfully!");
+      setShowAddModal(false);
+      setNewProduct({
+        name: "",
+        description: "",
+        price: "",
+        stock: "",
+        category: categories.length > 0 ? categories[0].name : "",
+        brand: "",
+        images: []
+      });
+      fetchProducts();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to add product");
+    } finally {
+      setAddingProduct(false);
     }
+  };
 
-    return filtered;
-  }
-
-  render() {
-    const { searchQuery, filterStatus } = this.state;
-    const filteredProducts = this.getFilteredProducts();
-
+  if (loading) {
     return (
       <AdminLayout>
         <div className="dashboard-content">
-          {/* Header */}
-          <div className="product-management-header">
-            <div className="header-content">
-              <div className="header-info">
-                <h1>Manage Products</h1>
-                <p>View and manage all products in the store</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="activity-card">
-            <div className="card-header">
-              <h2 className="card-title">All Products ({filteredProducts.length})</h2>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <select
-                  value={filterStatus}
-                  onChange={this.handleFilterChange}
-                  style={{
-                    padding: '8px 16px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    background: 'white',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <option value="All">All Status</option>
-                  <option value="Active">Active</option>
-                  <option value="Out of Stock">Out of Stock</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={this.handleSearch}
-                  style={{
-                    padding: '8px 16px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    width: '250px'
-                  }}
-                />
-              </div>
-            </div>
-
-            <table className="activity-table">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Brand</th>
-                  <th>Price</th>
-                  <th>Stock</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((product) => (
-                  <tr key={product.id}>
-                    <td>
-                      <div className="activity-event">
-                        <div className="event-icon green">
-                          <span>📦</span>
-                        </div>
-                        <div className="event-info">
-                          <h4>{product.name}</h4>
-                          <p>{product.category}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="time-text">{product.brand}</span>
-                    </td>
-                    <td>
-                      <span style={{ fontWeight: '600', color: '#1f2937' }}>
-                        {product.price}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={product.stock === 0 ? 'time-text' : ''}>
-                        {product.stock} units
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${product.status === 'Active' ? 'completed' : 'pending'
-                        }`}>
-                        {product.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          className="task-action"
-                          style={{ background: '#eef2ff', color: '#667eea', borderColor: '#667eea' }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="task-action"
-                          onClick={() => this.handleDelete(product.id)}
-                          style={{ background: '#fee2e2', color: '#dc2626' }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            <div>Loading products...</div>
           </div>
         </div>
       </AdminLayout>
     );
   }
-}
+
+  if (error) {
+    return (
+      <AdminLayout>
+        <div className="dashboard-content">
+          <div style={{ textAlign: 'center', padding: '50px', color: 'red' }}>
+            <div>Error: {error}</div>
+            <button onClick={fetchProducts} style={{ marginTop: '10px', padding: '8px 16px' }}>
+              Retry
+            </button>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout>
+      <div className="dashboard-content">
+        {/* Header */}
+        <div className="product-management-header">
+          <div className="header-content">
+            <div className="header-info">
+              <h1>Manage Products</h1>
+              <p>View, manage, and add products to the store</p>
+            </div>
+            <div className="header-actions" style={{ marginLeft: 'auto' }}>
+              <button
+                className="add-user-btn"
+                onClick={() => setShowAddModal(true)}
+              >
+                + Add Product
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="activity-card">
+          <div className="card-header">
+            <h2 className="card-title">All Products ({totalProducts})</h2>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <select
+                value={filterCategory}
+                onChange={handleCategoryFilter}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="all">All Categories</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filterStatus}
+                onChange={handleStatusFilter}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  background: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={handleSearch}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  width: '250px'
+                }}
+              />
+            </div>
+          </div>
+
+          <table className="activity-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Brand</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr key={product._id}>
+                  <td>
+                    <div className="activity-event">
+                      <div className="event-icon green">
+                        <span>📦</span>
+                      </div>
+                      <div className="event-info">
+                        <h4>{product.name}</h4>
+                        <p>{product.category}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="time-text">{product.brand?.name || 'N/A'}</span>
+                  </td>
+                  <td>
+                    <span style={{ fontWeight: '600', color: '#1f2937' }}>
+                      ${product.price?.toFixed(2)}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={product.stock === 0 ? 'time-text' : ''}>
+                      {product.stock} units
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${product.isActive ? 'completed' : 'pending'}`}>
+                      {product.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        className="task-action"
+                        onClick={() => handleToggleStatus(product._id)}
+                        style={{
+                          background: product.isActive ? '#fee2e2' : '#d1fae5',
+                          color: product.isActive ? '#dc2626' : '#059669',
+                          borderColor: product.isActive ? '#dc2626' : '#059669'
+                        }}
+                      >
+                        {product.isActive ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button
+                        className="task-action"
+                        style={{ background: '#eef2ff', color: '#667eea', borderColor: '#667eea' }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="task-action"
+                        onClick={() => handleDelete(product._id)}
+                        style={{ background: '#fee2e2', color: '#dc2626' }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', gap: '8px' }}>
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  background: currentPage === 1 ? '#f3f4f6' : 'white',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Previous
+              </button>
+              <span style={{ padding: '8px 16px' }}>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  background: currentPage === totalPages ? '#f3f4f6' : 'white',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Add Product Modal */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <div className="modal-header">
+              <h3>Add New Product</h3>
+              <button className="modal-close" onClick={() => setShowAddModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleAddProductSubmit}>
+              <div className="modal-body">
+                <div className="form-group" style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px' }}>Product Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={newProduct.name}
+                    onChange={handleAddProductChange}
+                    required
+                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px' }}>Category</label>
+                  <select
+                    name="category"
+                    value={newProduct.category}
+                    onChange={handleAddProductChange}
+                    required
+                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px' }}>Description</label>
+                  <textarea
+                    name="description"
+                    value={newProduct.description}
+                    onChange={handleAddProductChange}
+                    rows="3"
+                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="form-group">
+                    <label style={{ display: 'block', marginBottom: '5px' }}>Price ($)</label>
+                    <input
+                      type="number"
+                      name="price"
+                      value={newProduct.price}
+                      onChange={handleAddProductChange}
+                      required
+                      min="0"
+                      step="0.01"
+                      style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label style={{ display: 'block', marginBottom: '5px' }}>Stock</label>
+                    <input
+                      type="number"
+                      name="stock"
+                      value={newProduct.stock}
+                      onChange={handleAddProductChange}
+                      required
+                      min="0"
+                      style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer" style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="modal-btn secondary"
+                  onClick={() => setShowAddModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="modal-btn primary"
+                  disabled={addingProduct}
+                >
+                  {addingProduct ? "Adding..." : "Add Product"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </AdminLayout>
+  );
+};
 
 export default ManageProducts;
+
+

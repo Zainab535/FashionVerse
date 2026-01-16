@@ -6,7 +6,8 @@ import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-import brandRoutes from "./routes/brandRoutes.js";
+import brandRoutes from './routes/brandRoutes.js';
+import Category from './models/Category.js';
 
 dotenv.config();
 
@@ -15,10 +16,26 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+// Initialize default categories
+const initializeDefaultCategories = async () => {
+  try {
+    // Initialization logic removed - categories are now created on demand by admin
+    console.log('Category management ready - admins can add Women, Men, Kids anytime');
+  } catch (error) {
+    console.error('Error initializing categories:', error.message);
+  }
+};
+
+// Initialize categories after DB connection
+setTimeout(initializeDefaultCategories, 1000);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files
+app.use('/uploads', express.static('uploads'));
 
 // Routes
 app.use('/api/auth', authRoutes);

@@ -14,6 +14,10 @@ const brandSchema = new mongoose.Schema(
     isApproved: {
       type: Boolean,
       default: false
+    },
+    heroImage: {
+      type: String,
+      default: ""
     }
   },
   { timestamps: true }

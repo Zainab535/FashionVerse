@@ -6,16 +6,73 @@ import adminOnly from "../middleware/admin.js";
 import {
   getAllUsers,
   updateUserRole,
-  getAdminStats
+  deleteUser,
+  getAdminStats,
+  getSettings,
+  updateSettings,
+  getAllBrands,
+  updateBrandStatus,
+  deleteBrand,
+  getPendingVerifications,
+  approveVerification,
+  rejectVerification,
+  getAllOrders,
+  updateOrderStatus,
+  deleteOrder,
+  uploadBrandImage,
+  getAllCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  getAllProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  toggleProductStatus
 } from "../controllers/adminController.js";
+import { upload } from "../controllers/adminController.js";
 
 const router = express.Router();
 
 // 👤 USERS MANAGEMENT
 router.get("/users", verifyToken, adminOnly, getAllUsers);
 router.put("/users/:id/role", verifyToken, adminOnly, updateUserRole);
+router.delete("/users/:id", verifyToken, adminOnly, deleteUser);
 
-// 📊 DASHBOARD STATS
+// 🏷️ BRANDS MANAGEMENT
+router.get("/brands", verifyToken, adminOnly, getAllBrands);
+router.put("/brands/:id/status", verifyToken, adminOnly, updateBrandStatus);
+router.delete("/brands/:id", verifyToken, adminOnly, deleteBrand);
+
+// ✅ VERIFICATION MANAGEMENT
+router.get("/verifications", verifyToken, adminOnly, getPendingVerifications);
+router.put("/verifications/:id/approve", verifyToken, adminOnly, approveVerification);
+router.put("/verifications/:id/reject", verifyToken, adminOnly, rejectVerification);
+
+// � ORDERS MANAGEMENT
+router.get("/orders", verifyToken, adminOnly, getAllOrders);
+router.put("/orders/:id/status", verifyToken, adminOnly, updateOrderStatus);
+router.delete("/orders/:id", verifyToken, adminOnly, deleteOrder);
+// 📸 BRAND IMAGE UPLOAD
+router.post("/brands/upload-image", verifyToken, adminOnly, upload.single('heroImage'), uploadBrandImage);
+// �📊 DASHBOARD STATS
 router.get("/stats", verifyToken, adminOnly, getAdminStats);
+
+// ⚙️ SETTINGS
+router.get("/settings", verifyToken, adminOnly, getSettings);
+router.put("/settings", verifyToken, adminOnly, updateSettings);
+
+// 🏪 STORE CATEGORIES
+router.get("/categories", verifyToken, adminOnly, getAllCategories);
+router.post("/categories", verifyToken, adminOnly, createCategory);
+router.put("/categories/:id", verifyToken, adminOnly, updateCategory);
+router.delete("/categories/:id", verifyToken, adminOnly, deleteCategory);
+
+// 🛍️ PRODUCTS MANAGEMENT
+router.get("/products", verifyToken, adminOnly, getAllProducts);
+router.post("/products", verifyToken, adminOnly, createProduct);
+router.put("/products/:id", verifyToken, adminOnly, updateProduct);
+router.delete("/products/:id", verifyToken, adminOnly, deleteProduct);
+router.put("/products/:id/toggle-status", verifyToken, adminOnly, toggleProductStatus);
 
 export default router;
