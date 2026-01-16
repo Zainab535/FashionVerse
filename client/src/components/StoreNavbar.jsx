@@ -62,6 +62,9 @@ class StoreNavbar extends Component {
     )}
   </div>
 
+  {/* Login Button */}
+  <Link to="/login" className="nav-login-btn">Login</Link>
+
   {/* Profile */}
   <Link to="/profile" className="profile-link">
     <img

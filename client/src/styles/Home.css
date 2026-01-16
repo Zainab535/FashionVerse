@@ -134,30 +134,25 @@ body {
   opacity: 0.75;
 }
 
-/* BAG ICON WRAPPER */
-.bag-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-/* PROFILE LINK */
-.profile-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* LOGIN BUTTON */
+.nav-login-btn {
   text-decoration: none;
-}
-
-.profile-link .nav-icon {
+  color: #111;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: transparent;
+  transition: all 0.2s ease;
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.profile-link:hover .nav-icon {
-  transform: translateY(-2px);
-  opacity: 0.75;
+.nav-login-btn:hover {
+  border-color: #111;
+  background: #111;
+  color: #fff;
 }
 
 /* BAG COUNT BADGE */

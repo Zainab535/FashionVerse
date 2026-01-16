@@ -6,7 +6,7 @@ class CartSidebar extends Component {
   static contextType = CartContext;
 
   render() {
-    const { cart, isOpen, increment, decrement, removeFromCart, toggleCart } = this.context;
+      const { cart, isOpen, increment, decrement, removeFromCart, toggleCart } = this.context;
 
     const total = cart.reduce(
       (sum, item) =>

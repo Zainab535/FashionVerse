@@ -41,16 +41,45 @@ body {
   z-index: 10;
 }
 
+.nav-logo {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: #ffffff;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: "Manrope", sans-serif;
+}
+
 .nav-icon {
   width: 22px;
-  cursor: pointer;
   filter: invert(1); /* PURE WHITE ICONS */
+  cursor: pointer;
 }
 
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
+}
+
+.nav-link {
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1.5px solid transparent;
+}
+
+.nav-link:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .login-text {
@@ -91,6 +120,7 @@ body {
   height: 100%;
   padding: 0 32px;
   max-width: 900px;
+  color: white;
 
   display: flex;
   flex-direction: column;

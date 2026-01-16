@@ -50,8 +50,7 @@ class Navbar extends Component {
 
         {/* CENTER / LOGO PLACEHOLDER */}
         <div className="nav-logo">FASHIONVERSE</div>
-
-        {/* RIGHT */}
+        
         <div className={`nav-right ${this.state.menuOpen ? "open" : ""}`}>
           <Link to="/login" className="nav-link">
             LOGIN

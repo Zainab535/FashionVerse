@@ -81,7 +81,7 @@ const LoginPage = () => {
           </button>
 
           <p className="login-signup-text">
-            New to FashionVerse? <Link to="/signin" className="login-signup-link">Register Now</Link>
+            New to FashionVerse? <Link to="/register" className="login-signup-link">Register Now</Link>
           </p>
         </div>
       </div>
