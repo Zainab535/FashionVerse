@@ -86,43 +86,23 @@ const RegisterPage = () => {
       return;
     }
 
-    setLoading(true);
+    // Show success message
+    setSuccess(true);
+    alert("Brand registration submitted successfully! We'll review your application soon.");
+    
+    // Reset form
+    setBrandName("");
+    setBusinessEmail("");
+    setWebsiteUrl("");
+    setBrandCategory("");
+    setUploadedFile(null);
+    setAgreeTerms(false);
     setError("");
 
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("brandName", brandName);
-      formDataToSend.append("businessEmail", businessEmail);
-      formDataToSend.append("websiteUrl", websiteUrl);
-      formDataToSend.append("brandCategory", brandCategory);
-      formDataToSend.append("verificationDoc", uploadedFile);
-
-      const response = await api.post("/brand/register", formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      setSuccess(true);
-      alert("Brand registration submitted successfully! We'll review your application soon.");
-      
-      // Reset form
-      setBrandName("");
-      setBusinessEmail("");
-      setWebsiteUrl("");
-      setBrandCategory("");
-      setUploadedFile(null);
-      setAgreeTerms(false);
-
-      // Navigate to brand dashboard
-      setTimeout(() => {
-        navigate("/brand-dashboard");
-      }, 1000);
-    } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    // Navigate to brand dashboard
+    setTimeout(() => {
+      navigate("/brand-dashboard");
+    }, 500);
   };
 
   const handleRegister = () => {

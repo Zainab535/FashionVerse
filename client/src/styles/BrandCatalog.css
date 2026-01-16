@@ -7,7 +7,8 @@
   --u-card-border: rgba(255, 255, 255, 0.9);
   --u-shadow: 0 10px 40px -10px rgba(0, 60, 150, 0.1);
   --u-shadow-hover: 0 20px 50px -10px rgba(0, 60, 150, 0.2);
-  --u-accent: #6366f1; /* Indigo */
+  --u-accent: #6366f1;
+  /* Indigo */
   --u-accent-glow: #818cf8;
   --u-dark: #0f172a;
   --u-transition: cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -30,7 +31,7 @@
   left: -10%;
   width: 120%;
   height: 120%;
-  background-image: 
+  background-image:
     radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
     radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 40%);
   z-index: 0;
@@ -82,7 +83,8 @@
   gap: 24px;
   overflow-x: auto;
   scroll-behavior: smooth;
-  padding: 20px 10px 40px 10px; /* Bottom padding for hover expansion */
+  padding: 20px 10px 40px 10px;
+  /* Bottom padding for hover expansion */
   width: 100%;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -105,7 +107,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: all 0.3s var(--u-transition);
   flex-shrink: 0;
   z-index: 10;
@@ -115,7 +117,7 @@
   background: var(--u-dark);
   color: white;
   transform: scale(1.1);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .nav-btn svg {
@@ -178,7 +180,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.05));
 }
 
 .brand-card:hover .image-area {
@@ -211,11 +213,12 @@
   width: 100%;
   height: auto;
   padding: 20px 16px;
-  background: linear-gradient(to top, rgba(255,255,255,0.95) 20%, rgba(255,255,255,0));
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.95) 20%, rgba(255, 255, 255, 0));
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transform: translateY(110%); /* Hidden by default */
+  transform: translateY(110%);
+  /* Hidden by default */
   transition: transform 0.4s var(--u-transition);
 }
 
@@ -237,7 +240,7 @@
 
 .action-btn.glass {
   background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   color: var(--u-dark);
 }
 
@@ -248,7 +251,7 @@
 .action-btn.neon {
   background: var(--u-dark);
   color: white;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .action-btn.neon:hover {
@@ -293,17 +296,19 @@
 /* RESPONSIVE */
 @media (max-width: 768px) {
   .nav-btn {
-    display: none; /* Hide arrows on touch devices */
+    display: none;
+    /* Hide arrows on touch devices */
   }
-  
+
   .scroll-btn {
     width: 44px;
     height: 44px;
     font-size: 18px;
   }
-  
+
   .brand-track {
-    padding-left: 24px; /* Peeking card effect */
+    padding-left: 24px;
+    /* Peeking card effect */
     padding-right: 24px;
     gap: 16px;
   }
@@ -312,11 +317,11 @@
     width: 150px;
     height: 190px;
   }
-  
+
   .ultra-title {
     font-size: 1.8rem;
   }
-  
+
   /* On mobile, sometimes hover is tricky. 
      Optional: Make overlay always visible or keep tap behavior.
      Here we keep the animation but ensure touch works. */
