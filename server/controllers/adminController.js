@@ -75,3 +75,33 @@ export const getAdminStats = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// GET SETTINGS
+export const getSettings = async (req, res) => {
+  try {
+    // For now, return default settings. Later, can use a Settings model.
+    const settings = {
+      storeProfile: {
+        storeName: "FashionVerse",
+        supportEmail: "support@fashionverse.com"
+      },
+      securitySettings: {
+        twoFactorAuth: false
+      }
+    };
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// UPDATE SETTINGS
+export const updateSettings = async (req, res) => {
+  try {
+    const { storeProfile, securitySettings } = req.body;
+    // For now, just return success. In real app, save to DB.
+    res.json({ message: "Settings updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
