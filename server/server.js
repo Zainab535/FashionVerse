@@ -43,6 +43,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/brand", brandRoutes);
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running' });
