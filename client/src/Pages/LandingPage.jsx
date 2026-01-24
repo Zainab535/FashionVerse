@@ -7,7 +7,7 @@ class LandingPage extends Component {
   render() {
     return (
       <div className="landing-container">
-      
+
         <HeroSection />
         <Footer />
       </div>

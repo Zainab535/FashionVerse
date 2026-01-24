@@ -139,6 +139,7 @@ class ProductDetailPage extends Component {
             </span>
 
             <h1>{product.name}</h1>
+
             <p className="price">{product.price}</p>
 
             <p className="desc">
@@ -154,7 +155,7 @@ class ProductDetailPage extends Component {
             </div>
 
             <div className="size">
-              <span>Size</span>
+              <span>Size:</span>
               <p>One Size</p>
             </div>
 

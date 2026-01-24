@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/Auth.css";
 import api from "../api";
+import logo from "../assets/images/logo.png";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -39,10 +40,12 @@ const LoginPage = () => {
   return (
     <div className="login-container">
       <div className="login-left">
-        <div className="login-logo">FashionVerse</div>
-        <img 
-          src="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&h=800&fit=crop" 
-          alt="Fashion Model" 
+        <Link to="/home" className="login-logo">
+          <img src={logo} alt="FashionVerse Logo" className="login-logo-img" />
+        </Link>
+        <img
+          src="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&h=800&fit=crop"
+          alt="Fashion Model"
           className="login-model-image"
         />
       </div>

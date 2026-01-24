@@ -19,7 +19,37 @@ class BrandCatalog extends Component {
       { id: "brand4", image: brand4 },
     ];
     this.scrollRef = React.createRef();
+    this.autoScrollInterval = null;
   }
+
+  componentDidMount() {
+    // Auto-scroll every 5 seconds
+    this.autoScrollInterval = setInterval(() => {
+      this.autoScroll();
+    }, 5000);
+  }
+
+  componentWillUnmount() {
+    // Clear interval when component unmounts
+    if (this.autoScrollInterval) {
+      clearInterval(this.autoScrollInterval);
+    }
+  }
+
+  autoScroll = () => {
+    const container = this.scrollRef.current;
+    if (container) {
+      const scrollAmount = 300;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+
+      // If we're at the end, scroll back to start
+      if (container.scrollLeft >= maxScroll - 10) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    }
+  };
 
   scroll = (direction) => {
     const container = this.scrollRef.current;

@@ -20,10 +20,11 @@
 // }
 
 // export default Navbar;
- 
+
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
 
+import logo from "../assets/images/logo.png";
 import menuIcon from "../assets/icons/menu.svg";
 import searchIcon from "../assets/icons/search.svg";
 import bagIcon from "../assets/icons/shopping-bag.svg";
@@ -48,9 +49,11 @@ class Navbar extends Component {
           onClick={this.toggleMenu}
         />
 
-        {/* CENTER / LOGO PLACEHOLDER */}
-        <div className="nav-logo">FASHIONVERSE</div>
-        
+        {/* CENTER / LOGO */}
+        <Link to="/home" className="nav-logo">
+          <img src={logo} alt="FashionVerse Logo" className="nav-logo-img" />
+        </Link>
+
         <div className={`nav-right ${this.state.menuOpen ? "open" : ""}`}>
           <Link to="/login" className="nav-link">
             LOGIN

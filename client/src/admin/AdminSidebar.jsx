@@ -13,9 +13,7 @@ class AdminSidebar extends Component {
   componentDidMount() {
     // Update active link when pathname changes
     this.updateActiveLink();
-  }
 
-  componentDidMount() {
     // Poll for route changes to update active state
     this.pathCheckInterval = setInterval(() => {
       this.updateActiveLink();
@@ -66,9 +64,8 @@ class AdminSidebar extends Component {
     const { activeLink } = this.state;
 
     return (
-      <div className={`professional-sidebar ${
-        isOpen ? 'sidebar-expanded' : 'sidebar-mini'
-      } ${isMobile ? 'mobile-view' : ''}`}>
+      <div className={`professional-sidebar ${isOpen ? 'sidebar-expanded' : 'sidebar-mini'
+        } ${isMobile ? 'mobile-view' : ''}`}>
         {/* Professional Sidebar Header */}
         <div className="professional-header">
           <div className="brand-container">
@@ -85,48 +82,48 @@ class AdminSidebar extends Component {
         {/* Professional Navigation */}
         <div className="professional-nav">
           <div className="nav-section">
-            <Link 
-              to="/admin" 
+            <Link
+              to="/admin"
               className={`nav-item ${activeLink === 'dashboard' ? 'active' : ''}`}
               onClick={() => this.handleLinkClick('dashboard')}
             >
               <span className="nav-icon icon-dashboard"></span>
               {(isOpen || isMobile) && <span className="nav-label">Dashboard</span>}
             </Link>
-            <Link 
-              to="/admin/users" 
+            <Link
+              to="/admin/users"
               className={`nav-item ${activeLink === 'users' ? 'active' : ''}`}
               onClick={() => this.handleLinkClick('users')}
             >
               <span className="nav-icon icon-users"></span>
               {(isOpen || isMobile) && <span className="nav-label">Users</span>}
             </Link>
-            <Link 
-              to="/admin/brands" 
+            <Link
+              to="/admin/brands"
               className={`nav-item ${activeLink === 'brands' ? 'active' : ''}`}
               onClick={() => this.handleLinkClick('brands')}
             >
               <span className="nav-icon icon-store"></span>
               {(isOpen || isMobile) && <span className="nav-label">Brand & Store</span>}
             </Link>
-            <Link 
-              to="/admin/products" 
+            <Link
+              to="/admin/products"
               className={`nav-item ${activeLink === 'products' ? 'active' : ''}`}
               onClick={() => this.handleLinkClick('products')}
             >
               <span className="nav-icon icon-products"></span>
               {(isOpen || isMobile) && <span className="nav-label">Products</span>}
             </Link>
-            <Link 
-              to="/admin/verifications" 
+            <Link
+              to="/admin/verifications"
               className={`nav-item ${activeLink === 'verifications' ? 'active' : ''}`}
               onClick={() => this.handleLinkClick('verifications')}
             >
               <span className="nav-icon icon-verification"></span>
               {(isOpen || isMobile) && <span className="nav-label">Verifications</span>}
             </Link>
-            <Link 
-              to="/admin/settings" 
+            <Link
+              to="/admin/settings"
               className={`nav-item ${activeLink === 'settings' ? 'active' : ''}`}
               onClick={() => this.handleLinkClick('settings')}
             >

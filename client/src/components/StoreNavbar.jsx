@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import logo from "../assets/images/brand2.jpg";
+import logo from "../assets/images/logo.png";
 import { CartContext } from "../context/CartContext";
 import wishlistIcon from "../assets/icons/my-wish-list.png";
 import bagIcon from "../assets/icons/shopping-bag.svg";
@@ -21,14 +21,14 @@ class StoreNavbar extends Component {
     return (
       <header className="store-navbar">
         {/* LEFT */}
-        <div className="nav-left">
-          <img src={logo} alt="Logo" className="nav-logo-img" />
-          <span className="nav-brand">FASHIONVERSE</span>
-        </div>
+        <Link to="/home" className="nav-left">
+          <img src={logo} alt="FashionVerse Logo" className="nav-logo-img" />
+        </Link>
 
         {/* CENTER */}
         <nav className="nav-links">
-          <span>New Arrivals</span>
+          <Link to="/home" className="nav-link-item">Home</Link>
+
           <span>Brands</span>
           <Link to="/about" className="nav-link-item">About</Link>
           <Link to="/contact" className="nav-link-item">Contact</Link>
@@ -36,44 +36,44 @@ class StoreNavbar extends Component {
         </nav>
 
         {/* RIGHT ICONS */}
-       <div className="nav-icons">
-    <img
-    src={searchIcon}
-    alt="search"
-    className="nav-icon"
-  />
-  {/* Wishlist */}
-  <img
-    src={wishlistIcon}
-    alt="Wishlist"
-    className="nav-icon"
-  />
+        <div className="nav-icons">
+          <img
+            src={searchIcon}
+            alt="search"
+            className="nav-icon"
+          />
+          {/* Wishlist */}
+          <img
+            src={wishlistIcon}
+            alt="Wishlist"
+            className="nav-icon"
+          />
 
-  {/* Cart / Bag */}
-  <div className="bag-icon" onClick={toggleCart}>
-    <img
-      src={bagIcon}
-      alt="Cart"
-      className="nav-icon"
-    />
+          {/* Cart / Bag */}
+          <div className="bag-icon" onClick={toggleCart}>
+            <img
+              src={bagIcon}
+              alt="Cart"
+              className="nav-icon"
+            />
 
-    {count > 0 && (
-      <span className="bag-count">{count}</span>
-    )}
-  </div>
+            {count > 0 && (
+              <span className="bag-count">{count}</span>
+            )}
+          </div>
 
-  {/* Login Button */}
-  <Link to="/login" className="nav-login-btn">Login</Link>
+          {/* Login Button */}
+          <Link to="/login" className="nav-login-btn">Login</Link>
 
-  {/* Profile */}
-  <Link to="/profile" className="profile-link">
-    <img
-      src={userIcon}
-      alt="Profile"
-      className="nav-icon"
-    />
-  </Link>
-</div>
+          {/* Profile */}
+          <Link to="/profile" className="profile-link">
+            <img
+              src={userIcon}
+              alt="Profile"
+              className="nav-icon"
+            />
+          </Link>
+        </div>
 
       </header>
     );

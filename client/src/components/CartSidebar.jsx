@@ -6,7 +6,7 @@ class CartSidebar extends Component {
   static contextType = CartContext;
 
   render() {
-      const { cart, isOpen, increment, decrement, removeFromCart, toggleCart } = this.context;
+    const { cart, isOpen, increment, decrement, removeFromCart, toggleCart } = this.context;
 
     const total = cart.reduce(
       (sum, item) =>
@@ -16,57 +16,49 @@ class CartSidebar extends Component {
 
     return (
       <div className={`cart-sidebar ${isOpen ? "open" : ""}`}>
-        
+
         {/* HEADER */}
         <div className="cart-header">
-          <h3>Your Bag</h3>
+          <div>
+            <h3>Shopping Cart</h3>
+            <span className="cart-count">{cart.length} Items</span>
+          </div>
           <span className="cart-close" onClick={toggleCart}>✕</span>
-        </div>
-
-        {/* TABLE HEAD */}
-        <div className="cart-table-head">
-          <span>Product</span>
-          <span>Quantity</span>
-          <span>Price</span>
         </div>
 
         {/* ITEMS */}
         <div className="cart-items">
           {cart.length === 0 && (
-            <p className="empty-cart">Your bag is empty</p>
+            <p className="empty-cart">Your cart is empty</p>
           )}
 
           {cart.map((item) => (
-            <div key={item.id} className="cart-row">
-              {/* Product */}
-              <div className="cart-product">
+            <div key={item.id} className="cart-item">
+              {/* Product Image */}
+              <div className="cart-item-image">
                 <img src={item.image} alt={item.name} />
-                <div>
-                  <p className="cart-product-name">{item.name}</p>
+              </div>
+
+              {/* Product Info */}
+              <div className="cart-item-info">
+                <p className="cart-item-name">{item.name}</p>
+                <span className="cart-item-size">Small</span>
+                <div className="cart-item-price">
+                  <span className="current-price">{item.price}</span>
                 </div>
               </div>
 
-              {/* Quantity */}
+              {/* Quantity Controls */}
               <div className="cart-qty">
-                <button onClick={() => decrement(item.id)}>-</button>
+                <button onClick={() => decrement(item.id)}>−</button>
                 <span>{item.qty}</span>
                 <button onClick={() => increment(item.id)}>+</button>
               </div>
 
-              {/* Price */}
-              <div className="cart-price">
-                $
-                {(
-                  parseFloat(item.price.replace(/[^0-9.]/g, "")) *
-                  item.qty
-                ).toFixed(2)}
-              </div>
-
               {/* Remove Button */}
-              <button 
+              <button
                 className="cart-remove"
                 onClick={() => removeFromCart(item.id)}
-                title="Remove item"
               >
                 ✕
               </button>
@@ -76,26 +68,24 @@ class CartSidebar extends Component {
 
         {/* FOOTER */}
         <div className="cart-footer">
+          <div className="cart-subtotal">
+            <span>Subtotal:</span>
+            <span>Rs.{total.toFixed(2)}</span>
+          </div>
           <div className="cart-total">
             <span>Total:</span>
-            <strong>${total.toFixed(2)}</strong>
+            <strong>Rs.{total.toFixed(2)}</strong>
           </div>
 
-          <div className="cart-actions">
-            <button className="cart-secondary" onClick={toggleCart}>
-              Continue Shopping
-            </button>
-           <button
-  className="cart-primary"
-  onClick={() => {
-    toggleCart();
-    this.props.navigate("/checkout/shipping");
-  }}
->
-  Proceed to Checkout
-</button>
-
-          </div>
+          <button
+            className="cart-checkout-btn"
+            onClick={() => {
+              toggleCart();
+              this.props.navigate("/checkout/shipping");
+            }}
+          >
+            Proceed To Checkout →
+          </button>
         </div>
       </div>
     );

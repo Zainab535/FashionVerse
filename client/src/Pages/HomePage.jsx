@@ -3,7 +3,7 @@ import StoreNavbar from "../components/StoreNavbar";
 import StoreHero from "../components/StoreHero";
 import BrandCatalog from "../components/BrandCatalog";
 import ProductGrid from "../components/ProductGrid";
-import StoreFooter from "../components/StoreFooter";
+import ProductFooter from "../components/ProductFooter";
 
 import "../styles/Home.css";
 
@@ -15,7 +15,8 @@ class HomePage extends Component {
         <StoreHero />
         <BrandCatalog />
         <ProductGrid />
-        <StoreFooter />
+        <ProductFooter />
+
       </>
     );
   }
