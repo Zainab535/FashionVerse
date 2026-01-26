@@ -12,11 +12,13 @@
 ========================= */
 .about-hero {
   background: linear-gradient(135deg, #ffffff 0%, #f9f7f4 50%, #f0e8e4 100%);
-  padding: 120px 9%;
+  padding: 80px 5%;
+  /* Reduced padding */
   text-align: center;
   position: relative;
   overflow: hidden;
-  min-height: 50vh;
+  min-height: 40vh;
+  /* Reduced height */
 }
 
 .about-hero::before {
@@ -54,6 +56,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -61,11 +64,13 @@
 }
 
 .about-hero h1 {
-  font-size: 64px;
+  font-family: 'Playfair Display', serif;
+  /* Added premium font */
+  font-size: 48px;
+  /* Reduced from 64px */
   font-weight: 700;
-  margin-bottom: 16px;
-  color: #111;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 12px;
+  color: #1a1a1a;
 }
 
 .about-hero p {
@@ -78,12 +83,14 @@
    ABOUT CONTENT SECTION
 ========================= */
 .about-content {
-  padding: 100px 9%;
+  padding: 60px 8%;
+  /* Reduced padding */
   background: #ffffff;
 }
 
 .about-section {
-  margin-bottom: 80px;
+  margin-bottom: 60px;
+  /* Reduced spacing */
   animation: fadeInSection 0.8s ease-out;
 }
 
@@ -92,6 +99,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -99,10 +107,12 @@
 }
 
 .about-section h2 {
-  font-size: 42px;
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  /* Reduced from 42px */
   font-weight: 700;
-  margin-bottom: 24px;
-  color: #111;
+  margin-bottom: 16px;
+  color: #1a1a1a;
 }
 
 .about-section p {
@@ -160,10 +170,12 @@
 }
 
 .about-cta h2 {
-  font-size: 42px;
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  /* Reduced from 42px */
   font-weight: 700;
   margin-bottom: 12px;
-  color: #111;
+  color: #1a1a1a;
 }
 
 .about-cta p {

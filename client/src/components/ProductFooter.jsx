@@ -4,69 +4,49 @@ import { Link } from "react-router-dom";
 class ProductFooter extends Component {
   render() {
     return (
-      <footer className="product-footer">
-        <div className="footer-grid">
-          {/* About Column */}
-          <div className="footer-column">
-            <h3>FashionVerse</h3>
-            <p>
-              Redefining luxury through minimalist design and editorial
-              aesthetics. Experience the future of digital couture with
-              curated collections from world-renowned designers.
+      <footer className="fv-footer">
+        <div className="fv-footer-wrapper">
+
+          {/* Brand */}
+          <div className="fv-footer-col">
+            <h2 className="fv-footer-logo">FashionVerse</h2>
+            <p className="fv-footer-desc">
+              A premium fashion marketplace delivering curated styles
+              with a modern editorial aesthetic.
             </p>
-            <div className="footer-social">
-              <a href="#" aria-label="Facebook">📘</a>
-              <a href="#" aria-label="Instagram">📷</a>
-              <a href="#" aria-label="Twitter">🐦</a>
-              <a href="#" aria-label="Pinterest">📌</a>
+          </div>
+
+          {/* Quick Links */}
+          <div className="fv-footer-col">
+            <h4 className="fv-footer-title">Explore</h4>
+            <Link to="/home">Shop</Link>
+            <Link to="/home">New Arrivals</Link>
+            <Link to="/home">Collections</Link>
+          </div>
+
+          {/* Support */}
+          <div className="fv-footer-col">
+            <h4 className="fv-footer-title">Support</h4>
+            <Link to="/contact">Contact</Link>
+            <Link to="/about">About Us</Link>
+            <a href="#">FAQs</a>
+          </div>
+
+          {/* Social */}
+          <div className="fv-footer-col">
+            <h4 className="fv-footer-title">Follow</h4>
+            <div className="fv-footer-social">
+              <a href="#">Instagram</a>
+              <a href="#">Facebook</a>
+              <a href="#">Twitter</a>
             </div>
           </div>
 
-          {/* Shop Column */}
-          <div className="footer-column">
-            <h3>Shop</h3>
-            <ul>
-              <li><Link to="/home">New Arrivals</Link></li>
-              <li><Link to="/home">Women</Link></li>
-              <li><Link to="/home">Men</Link></li>
-              <li><Link to="/home">Accessories</Link></li>
-              <li><Link to="/home">Sale</Link></li>
-            </ul>
-          </div>
-
-          {/* Customer Care Column */}
-          <div className="footer-column">
-            <h3>Customer Service</h3>
-            <ul>
-              <li><Link to="/contact">Contact Us</Link></li>
-              <li><a href="#">Shipping Info</a></li>
-              <li><a href="#">Returns & Exchanges</a></li>
-              <li><a href="#">Size Guide</a></li>
-              <li><a href="#">FAQ</a></li>
-            </ul>
-          </div>
-
-          {/* Legal Column */}
-          <div className="footer-column">
-            <h3>Information</h3>
-            <ul>
-              <li><Link to="/about">About Us</Link></li>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Terms of Service</a></li>
-              <li><a href="#">Careers</a></li>
-              <li><a href="#">Track Order</a></li>
-            </ul>
-          </div>
         </div>
 
-        {/* Footer Bottom */}
-        <div className="footer-bottom">
-          <p>© 2024 FashionVerse Inc. All rights reserved. | Based in Pakistan</p>
-          <div className="footer-payment">
-            <span>💳 VISA</span>
-            <span>💳 MASTERCARD</span>
-            <span>💵 PAYPAL</span>
-          </div>
+        {/* Bottom */}
+        <div className="fv-footer-bottom">
+          © 2024 FashionVerse · Pakistan
         </div>
       </footer>
     );

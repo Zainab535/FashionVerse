@@ -22,27 +22,30 @@ class PaymentPage extends Component {
     this.setState({ [e.target.name]: e.target.value, error: "" });
   };
 
- handlePay = () => {
-  const { cardNumber, expiry, cvc, name } = this.state;
+  handlePay = () => {
+    const { cardNumber, expiry, cvc, name } = this.state;
 
-  if (!cardNumber || !expiry || !cvc || !name) {
-    this.setState({
-      error: "Please fill all required payment fields",
-    });
-    return;
-  }
+    if (!cardNumber || !expiry || !cvc || !name) {
+      this.setState({
+        error: "Please fill all required payment fields",
+      });
+      return;
+    }
 
-  // ✅ Payment successful (demo)
-  this.props.navigate("/order-success");
-};
+    // ✅ Payment successful (demo)
+    this.props.navigate("/order-success");
+  };
 
   render() {
     const { cart } = this.context;
     const { error } = this.state;
 
     const subtotal = cart.reduce(
-      (sum, item) =>
-        sum + parseFloat(item.price.replace("$", "")) * item.qty,
+      (sum, item) => {
+        // Remove '$' and ',' then parse
+        const price = parseFloat(item.price.replace(/[$,]/g, ""));
+        return sum + price * item.qty;
+      },
       0
     );
 

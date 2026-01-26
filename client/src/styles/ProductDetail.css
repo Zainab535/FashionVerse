@@ -1,93 +1,111 @@
+/* =====================================================
+   PRODUCT DETAIL – FINAL (CLEAN & FIXED)
+===================================================== */
+
 .product-detail {
+  max-width: 1200px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
-  gap: 60px;
-  padding: 60px 9%;
+
+  /* 🔥 KEY FIX */
+  grid-template-columns: minmax(0, 520px) minmax(0, 420px);
+
+  justify-content: center;
+  gap: 80px;
+
+  padding: 80px 40px;
   background: #ffffff;
-  padding-bottom: 40px;
+  align-items: start;
 }
 
 /* =========================
-   PRODUCT IMAGE (FINAL FIX)
+   PRODUCT GALLERY
 ========================= */
 
-.product-images {
+.product-gallery {
   display: flex;
+  gap: 20px;
   align-items: flex-start;
-  justify-content: center;
 }
 
-.product-main-image {
-  max-width: 100%;
+.thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 80px;
+}
+
+.thumbs img {
+  width: 70px;
+  height: 90px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.thumbs img.active {
+  border: 2px solid #000;
+}
+
+.main-image img {
+  width: 100%;
+  max-width: 480px;
   height: auto;
-  max-height: 620px;
-  object-fit: contain;
   background: #f5f5f5;
 }
 
+/* =========================
+   PRODUCT INFO
+========================= */
 
-/* INFO */
 .product-info {
+  max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
-.product-info .breadcrumb {
+.breadcrumb {
   font-size: 12px;
   color: #888;
   margin-bottom: 12px;
 }
 
 .product-info h1 {
-  font-size: 36px;
+  font-family: "Playfair Display", serif;
+  font-size: 42px;
   font-weight: 600;
-  margin: 0 0 16px 0;
-  line-height: 1.2;
+  margin-bottom: 16px;
 }
 
-/* Meta Row - Price, Color, Size */
-.product-info .price {
-  font-size: 22px;
+.price {
+  font-size: 24px;
   font-weight: 700;
-  color: #000;
-  margin: 0 0 16px 0;
+  margin-bottom: 16px;
 }
 
-.product-info .desc {
+.desc {
   font-size: 14px;
   color: #666;
   line-height: 1.6;
-  max-width: 450px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
-.colors {
+/* =========================
+   COLORS & SIZE
+========================= */
+
+.colors,
+.size {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 0 16px 0;
-  padding: 0;
-}
-
-.colors span {
-  font-size: 13px;
-  font-weight: 500;
-  color: #333;
-  margin: 0;
+  margin-bottom: 18px;
 }
 
 .color {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.color:hover {
-  transform: scale(1.1);
 }
 
 .color.black {
@@ -102,44 +120,23 @@
   background: #8b2c2c;
 }
 
-.size {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 20px 0;
-  padding: 0;
-}
+/* =========================
+   ADD TO BAG (PRODUCT ONLY)
+========================= */
 
-.size span {
-  font-size: 13px;
-  font-weight: 500;
-  color: #333;
-  margin: 0;
-}
-
-.size p {
-  font-size: 14px;
-  color: #555;
-  margin: 0;
-}
-
-.add-to-bag {
+.product-detail .add-to-bag {
   width: 100%;
-  padding: 14px;
+  max-width: 420px;
+  padding: 18px;
   background: #1143b8;
-  color: #fff;
+  color: #ffffff;
   border: none;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
-  border-radius: 6px;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 10px;
-}
-
-.add-to-bag:hover {
-  background: #0d2f85;
-  transform: translateY(-2px);
+  margin: 20px 0;
 }
 
 .stock {
@@ -147,6 +144,59 @@
   color: #d32f2f;
   margin-bottom: 30px;
 }
+
+/* =========================
+   TABS
+========================= */
+
+.product-tabs {
+  max-width: 420px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.tab-head {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 18px;
+}
+
+.tab-head span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  padding-bottom: 10px;
+  cursor: pointer;
+}
+
+.tab-head span.active {
+  color: #1143b8;
+  border-bottom: 2px solid #1143b8;
+}
+
+/* =========================
+   RESPONSIVE (PRODUCT ONLY)
+========================= */
+
+@media (max-width: 992px) {
+  .product-detail {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding: 60px 24px;
+  }
+
+  .product-info,
+  .product-tabs,
+  .product-detail .add-to-bag {
+    max-width: 100%;
+  }
+
+  .product-gallery {
+    justify-content: center;
+  }
+}
+
 
 /* =========================
    PRODUCT FOOTER (WHITE)
@@ -506,9 +556,15 @@
 
 .tab-head {
   display: flex;
-  gap: 30px;
+  gap: 25px;
   border-bottom: 1px solid #ddd;
   margin-bottom: 20px;
+  flex-wrap: nowrap;
+  /* Prevent wrapping */
+  overflow-x: auto;
+  /* Allow scroll if remarkably small screen, but mostly forcing single line */
+  white-space: nowrap;
+  /* Force text to stay on one line */
 }
 
 .tab-head span {
@@ -520,6 +576,8 @@
   color: #888;
   border-bottom: 2px solid transparent;
   transition: all 0.3s ease;
+  white-space: nowrap;
+  /* Ensure individual titles don't break lines */
 }
 
 .tab-head span:hover {

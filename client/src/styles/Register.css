@@ -631,6 +631,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -641,6 +642,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -652,6 +654,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -663,6 +666,7 @@
     opacity: 0;
     transform: translateX(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -670,15 +674,18 @@
 }
 
 @keyframes bounce {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-8px);
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
   .register-wrapper {
     grid-template-columns: 1fr;
     min-height: auto;

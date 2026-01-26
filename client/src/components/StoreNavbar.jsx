@@ -6,11 +6,21 @@ import wishlistIcon from "../assets/icons/my-wish-list.png";
 import bagIcon from "../assets/icons/shopping-bag.svg";
 import userIcon from "../assets/icons/person.svg";
 import searchIcon from "../assets/icons/search.svg";
+import menuIcon from "../assets/icons/menu.svg"; // Added menu icon
 
 class StoreNavbar extends Component {
 
   /* 🔥 CartContext attach */
   static contextType = CartContext;
+
+  state = {
+    menuOpen: false,
+  };
+
+  toggleMenu = () => {
+    this.setState({ menuOpen: !this.state.menuOpen });
+  };
+
 
   render() {
     const { cart, toggleCart } = this.context;
@@ -20,19 +30,21 @@ class StoreNavbar extends Component {
 
     return (
       <header className="store-navbar">
-        {/* LEFT */}
-        <Link to="/home" className="nav-left">
-          <img src={logo} alt="FashionVerse Logo" className="nav-logo-img" />
-        </Link>
+
+        <div className="nav-left-container">
+          <Link to="/home" className="nav-left">
+            <img src={logo} alt="FashionVerse Logo" className="nav-logo-img" />
+          </Link>
+        </div>
 
         {/* CENTER */}
-        <nav className="nav-links">
-          <Link to="/home" className="nav-link-item">Home</Link>
+        <nav className={`nav-links ${this.state.menuOpen ? "open" : ""}`}>
+          <Link to="/home" className="nav-link-item" onClick={this.toggleMenu}>Home</Link>
 
-          <span>Brands</span>
-          <Link to="/about" className="nav-link-item">About</Link>
-          <Link to="/contact" className="nav-link-item">Contact</Link>
-          <span className="sale">3D Mall</span>
+          <span className="nav-link-item" onClick={this.toggleMenu}>Brands</span>
+          <Link to="/about" className="nav-link-item" onClick={this.toggleMenu}>About</Link>
+          <Link to="/contact" className="nav-link-item" onClick={this.toggleMenu}>Contact</Link>
+          <span className="sale" onClick={this.toggleMenu}>3D Mall</span>
         </nav>
 
         {/* RIGHT ICONS */}
