@@ -1,0 +1,7 @@
+Connecting to DB: mongodb://localhost:27017/fashionverse
+Connected.
+Attempting to save brand:
+{"name":"Test Brand 1769280474045","businessEmail":"test1769280474045@brand.com","websiteUrl":"https://test.com","category":"mens","verificationDocument":"dummy_doc.pdf","isApproved":false}
+✅ Brand SAVED successfully!
+ID: 697513dabdc8fe06db810135
+✅ Brand RETRIEVED successfully!

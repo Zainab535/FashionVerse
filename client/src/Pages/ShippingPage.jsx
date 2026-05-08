@@ -1,9 +1,11 @@
 import React, { Component } from "react";
 import StoreNavbar from "../components/StoreNavbar";
 import ProductFooter from "../components/ProductFooter";
+import Breadcrumbs from "../components/Breadcrumbs";
 import "../styles/Shipping.css";
 import { withRouter } from "../utils/withRouter";
 import { CartContext } from "../context/CartContext";
+import api from "../api";
 
 class ShippingPage extends Component {
   static contextType = CartContext;
@@ -23,6 +25,48 @@ class ShippingPage extends Component {
       phone: "",
     },
     billingSame: true,
+  };
+
+  componentDidMount() {
+    this.enrichItemsIfNeeded();
+  }
+
+  enrichItemsIfNeeded = async () => {
+    const { cart, buyNowItem } = this.context;
+    const checkoutItems = buyNowItem ? [buyNowItem] : (cart || []);
+
+    let needsUpdate = false;
+    const enriched = [...checkoutItems];
+
+    for (let i = 0; i < enriched.length; i++) {
+      const item = enriched[i];
+      if (!item.name || !item.price) {
+        const productId = item.id || item._id;
+        if (productId) {
+          try {
+            const res = await api.get(`/products/${productId}`);
+            const prod = res.data;
+            enriched[i] = {
+              ...item,
+              name: item.name || prod.name,
+              image: item.image || (prod.images?.[0] ? `http://localhost:5000/uploads/${prod.images[0]}` : ""),
+              price: item.price || prod.price
+            };
+            needsUpdate = true;
+          } catch (err) {
+            console.warn("Could not enrich item in ShippingPage:", err);
+          }
+        }
+      }
+    }
+
+    if (needsUpdate) {
+      if (buyNowItem) {
+        this.context.setBuyNowItem(enriched[0]);
+      }
+      // Trigger re-render to show enriched data
+      this.forceUpdate();
+    }
   };
 
   handleChange = (e) => {
@@ -90,21 +134,50 @@ class ShippingPage extends Component {
       return;
     }
 
+    // 🔐 SAVE TO LOCALSTORAGE FOR PAYMENT PAGE
+    const selectedAddr = addresses[selectedIndex];
+    const shippingAddress = {
+      name: `${selectedAddr.firstName} ${selectedAddr.lastName}`,
+      phone: selectedAddr.phone,
+      address: selectedAddr.address1,
+      city: selectedAddr.city,
+      state: selectedAddr.state,
+      zipCode: selectedAddr.postal,
+      country: "Pakistan" // Default
+    };
+    localStorage.setItem("shippingAddress", JSON.stringify(shippingAddress));
+
     this.props.navigate("/checkout/payment");
   };
 
   render() {
     const { addresses, selectedIndex, form, billingSame, error } = this.state;
+    const { cart, buyNowItem } = this.context;
 
-    const subtotal = 835.0;
-    const shipping = 20.0;
-    const tax = 66.8;
+    // 🚀 USE buyNowItem if it exists (Direct Buy Mode), else use Cart
+    const checkoutItems = buyNowItem ? [buyNowItem] : (cart || []);
+
+    const subtotal = checkoutItems.reduce((sum, item) => {
+      const priceVal = typeof item.price === 'string'
+        ? parseFloat(item.price.replace(/[Rs. ,]/g, ""))
+        : item.price;
+      const quantity = item.qty || item.quantity || 1;
+      return sum + (priceVal || 0) * quantity;
+    }, 0);
+    const shipping = 0; // Free shipping
+    const tax = 0;
     const total = subtotal + shipping + tax;
 
     return (
       <>
         <StoreNavbar />
 
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+          <Breadcrumbs paths={[
+            { label: "Cart", url: "/home" },
+            { label: "Shipping", url: "/checkout/shipping" }
+          ]} />
+        </div>
         <section className="shipping-page">
           {/* LEFT */}
           <div className="shipping-left">
@@ -116,9 +189,8 @@ class ShippingPage extends Component {
                 {addresses.map((addr, i) => (
                   <label
                     key={i}
-                    className={`address-card ${
-                      selectedIndex === i ? "active" : ""
-                    }`}
+                    className={`address-card ${selectedIndex === i ? "active" : ""
+                      }`}
                   >
                     <input
                       type="radio"
@@ -144,62 +216,86 @@ class ShippingPage extends Component {
               <h3>Add New Address</h3>
 
               <div className="row">
+                <div className="input-group">
+                  <label>First Name <span className="required-star">*</span></label>
+                  <input
+                    name="firstName"
+                    placeholder="First Name"
+                    value={form.firstName}
+                    onChange={this.handleChange}
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Last Name <span className="required-star">*</span></label>
+                  <input
+                    name="lastName"
+                    placeholder="Last Name"
+                    value={form.lastName}
+                    onChange={this.handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label>Address Line 1 <span className="required-star">*</span></label>
                 <input
-                  name="firstName"
-                  placeholder="First Name *"
-                  value={form.firstName}
-                  onChange={this.handleChange}
-                />
-                <input
-                  name="lastName"
-                  placeholder="Last Name *"
-                  value={form.lastName}
+                  name="address1"
+                  placeholder="Street address or P.O. Box"
+                  value={form.address1}
                   onChange={this.handleChange}
                 />
               </div>
 
-              <input
-                name="address1"
-                placeholder="Address Line 1 *"
-                value={form.address1}
-                onChange={this.handleChange}
-              />
-
-              <input
-                name="address2"
-                placeholder="Address Line 2 (Optional)"
-                value={form.address2}
-                onChange={this.handleChange}
-              />
-
-              <div className="row">
+              <div className="input-group">
+                <label>Address Line 2 (Optional)</label>
                 <input
-                  name="city"
-                  placeholder="City *"
-                  value={form.city}
-                  onChange={this.handleChange}
-                />
-                <input
-                  name="state"
-                  placeholder="State / Province *"
-                  value={form.state}
+                  name="address2"
+                  placeholder="Apartment, suite, unit, building, floor, etc."
+                  value={form.address2}
                   onChange={this.handleChange}
                 />
               </div>
 
               <div className="row">
-                <input
-                  name="postal"
-                  placeholder="Postal Code *"
-                  value={form.postal}
-                  onChange={this.handleChange}
-                />
-                <input
-                  name="phone"
-                  placeholder="Phone *"
-                  value={form.phone}
-                  onChange={this.handleChange}
-                />
+                <div className="input-group">
+                  <label>City <span className="required-star">*</span></label>
+                  <input
+                    name="city"
+                    placeholder="City"
+                    value={form.city}
+                    onChange={this.handleChange}
+                  />
+                </div>
+                <div className="input-group">
+                  <label>State / Province <span className="required-star">*</span></label>
+                  <input
+                    name="state"
+                    placeholder="State"
+                    value={form.state}
+                    onChange={this.handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="input-group">
+                  <label>Postal Code <span className="required-star">*</span></label>
+                  <input
+                    name="postal"
+                    placeholder="Postal Code"
+                    value={form.postal}
+                    onChange={this.handleChange}
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Phone <span className="required-star">*</span></label>
+                  <input
+                    name="phone"
+                    placeholder="Phone"
+                    value={form.phone}
+                    onChange={this.handleChange}
+                  />
+                </div>
               </div>
 
               <div className="billing-check">
@@ -222,6 +318,7 @@ class ShippingPage extends Component {
               <div
                 className="return-cart"
                 onClick={() => {
+                  this.context.clearBuyNowItem(); // Clear direct buy if returning to cart
                   this.props.navigate(-1);
                   this.context.toggleCart();
                 }}
@@ -235,13 +332,42 @@ class ShippingPage extends Component {
           <div className="shipping-right">
             <h3>Your Order</h3>
 
+            <div className="order-summary-items">
+              {checkoutItems.length > 0 ? (
+                checkoutItems.map((item, idx) => {
+                  const itemPrice = typeof item.price === 'string'
+                    ? parseFloat(item.price.replace(/[Rs. ,]/g, ""))
+                    : item.price;
+                  const itemQty = item.qty || item.quantity || 1;
+                  const itemImage = item.image || (item.images && item.images[0]) || "";
+                  const displayImage = itemImage.startsWith('http') ? itemImage : `http://localhost:5000/uploads/${itemImage}`;
+
+                  return (
+                    <div key={item.id || idx} className="checkout-item-mini">
+                      <div className="checkout-item-thumb">
+                        <img src={displayImage} alt={item.name} onError={(e) => e.target.src = 'https://via.placeholder.com/50'} />
+                        <span className="item-qty-badge">{itemQty}</span>
+                      </div>
+                      <div className="checkout-item-info">
+                        <p className="item-name">{item.name}</p>
+                        <p className="item-variant">{item.selectedSize} {item.selectedColor ? ` / ${item.selectedColor}` : ""}</p>
+                      </div>
+                      <p className="item-price">Rs. {(itemPrice * itemQty).toLocaleString()}</p>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="empty-checkout">No items found</p>
+              )}
+            </div>
+
             <div className="summary">
-              <div><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-              <div><span>Shipping</span><span>${shipping.toFixed(2)}</span></div>
-              <div><span>Tax</span><span>${tax.toFixed(2)}</span></div>
+              <div><span>Subtotal</span><span>Rs. {subtotal.toLocaleString()}</span></div>
+              <div><span>Shipping</span><span>Rs. {shipping.toLocaleString()}</span></div>
+              <div><span>Tax</span><span>Rs. {tax.toLocaleString()}</span></div>
               <div className="total">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>Rs. {total.toLocaleString()}</span>
               </div>
             </div>
 

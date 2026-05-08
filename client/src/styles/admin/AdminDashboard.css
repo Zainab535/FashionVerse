@@ -186,9 +186,10 @@
 /* Two Column Layout */
 .two-column-layout {
   display: grid;
-  grid-template-columns: 1.8fr 1fr;
+  grid-template-columns: 7fr 3fr;
   gap: 28px;
   margin-top: 32px;
+  align-items: flex-start;
 }
 
 /* Material Design Activity Card */
@@ -810,7 +811,7 @@
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .two-column-layout {
     grid-template-columns: 1fr;
   }
@@ -821,7 +822,7 @@
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .date-filter {
     width: 100%;
     justify-content: center;
@@ -833,74 +834,74 @@
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .dashboard-content {
     padding: 16px 12px;
   }
-  
+
   .dashboard-header {
     margin-bottom: 24px;
   }
-  
+
   .dashboard-title h1 {
     font-size: 24px;
   }
-  
+
   .dashboard-title p {
     font-size: 14px;
   }
-  
+
   .breadcrumb {
     font-size: 13px;
   }
-  
+
   .activity-card,
   .tasks-card {
     padding: 16px;
   }
-  
+
   .card-title {
     font-size: 16px;
   }
-  
+
   .activity-table {
     font-size: 13px;
   }
-  
+
   .activity-table th,
   .activity-table td {
     padding: 10px 8px;
   }
-  
+
   .event-icon {
     width: 32px;
     height: 32px;
   }
-  
+
   .event-info h4 {
     font-size: 13px;
   }
-  
+
   .event-info p {
     font-size: 12px;
   }
-  
+
   .status-badge {
     padding: 3px 10px;
     font-size: 11px;
   }
-  
+
   .time-text {
     font-size: 11px;
   }
-  
+
   .task-item {
     padding: 12px;
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .task-action {
     width: 100%;
     text-align: center;
@@ -911,23 +912,23 @@
   .dashboard-content {
     padding: 12px 8px;
   }
-  
+
   .stat-card {
     padding: 16px;
   }
-  
+
   .stat-value {
     font-size: 24px;
   }
-  
+
   .stat-change {
     font-size: 12px;
   }
-  
+
   .activity-table thead {
     display: none;
   }
-  
+
   .activity-table tbody tr {
     display: flex;
     flex-direction: column;
@@ -937,25 +938,25 @@
     margin-bottom: 12px;
     background: #ffffff;
   }
-  
+
   .activity-table td {
     padding: 8px 0;
     border: none;
   }
-  
+
   .activity-table td:first-child {
     order: 1;
   }
-  
+
   .activity-table td:nth-child(2) {
     order: 3;
   }
-  
+
   .activity-table td:last-child {
     order: 2;
     text-align: left;
   }
-  
+
   .task-info {
     width: 100%;
   }

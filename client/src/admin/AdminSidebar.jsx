@@ -41,10 +41,16 @@ class AdminSidebar extends Component {
       return 'users';
     } else if (pathname.includes('/admin/brands')) {
       return 'brands';
+    } else if (pathname.includes('/admin/categories')) {
+      return 'categories';
     } else if (pathname.includes('/admin/products')) {
       return 'products';
     } else if (pathname.includes('/admin/verifications')) {
       return 'verifications';
+    } else if (pathname.includes('/admin/messages')) {
+      return 'messages';
+    } else if (pathname.includes('/admin/orders')) {
+      return 'orders';
     } else if (pathname.includes('/admin/settings')) {
       return 'settings';
     }
@@ -83,7 +89,7 @@ class AdminSidebar extends Component {
         <div className="professional-nav">
           <div className="nav-section">
             <Link
-              to="/admin"
+              to="/admin/dashboard"
               className={`nav-item ${activeLink === 'dashboard' ? 'active' : ''}`}
               onClick={() => this.handleLinkClick('dashboard')}
             >
@@ -107,6 +113,14 @@ class AdminSidebar extends Component {
               {(isOpen || isMobile) && <span className="nav-label">Brand & Store</span>}
             </Link>
             <Link
+              to="/admin/categories"
+              className={`nav-item ${activeLink === 'categories' ? 'active' : ''}`}
+              onClick={() => this.handleLinkClick('categories')}
+            >
+              <span className="nav-icon">🏪</span>
+              {(isOpen || isMobile) && <span className="nav-label">Global Categories</span>}
+            </Link>
+            <Link
               to="/admin/products"
               className={`nav-item ${activeLink === 'products' ? 'active' : ''}`}
               onClick={() => this.handleLinkClick('products')}
@@ -121,6 +135,22 @@ class AdminSidebar extends Component {
             >
               <span className="nav-icon icon-verification"></span>
               {(isOpen || isMobile) && <span className="nav-label">Verifications</span>}
+            </Link>
+            <Link
+              to="/admin/messages"
+              className={`nav-item ${activeLink === 'messages' ? 'active' : ''}`}
+              onClick={() => this.handleLinkClick('messages')}
+            >
+              <span className="nav-icon icon-mail" style={{ filter: 'none' }}>✉️</span>
+              {(isOpen || isMobile) && <span className="nav-label">Messages</span>}
+            </Link>
+            <Link
+              to="/admin/orders"
+              className={`nav-item ${activeLink === 'orders' ? 'active' : ''}`}
+              onClick={() => this.handleLinkClick('orders')}
+            >
+              <span className="nav-icon">📦</span>
+              {(isOpen || isMobile) && <span className="nav-label">Orders</span>}
             </Link>
             <Link
               to="/admin/settings"

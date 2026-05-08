@@ -19,7 +19,13 @@ const categorySchema = new mongoose.Schema(
     itemCount: {
       type: Number,
       default: 0
-    }
+    },
+    subCategories: [
+      {
+        name: { type: String, required: true },
+        description: { type: String, default: "" }
+      }
+    ]
   },
   { timestamps: true }
 );

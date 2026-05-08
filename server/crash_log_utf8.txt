@@ -1,0 +1,76 @@
+﻿node : 
+node:events:496
+At line:1 char:1
++ node server.js > 
+crash_log.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (node:ev   
+ ents:496:String)    
+ [], RemoteExcep    
+tion
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+      throw er; // 
+Unhandled 'error' 
+event
+      ^
+
+Error: listen 
+EADDRINUSE: address 
+already in use 
+:::5000
+    at Server.setupLi
+stenHandle [as 
+_listen2] 
+(node:net:1939:16)
+    at 
+listenInCluster 
+(node:net:1996:12)
+    at Server.listen 
+(node:net:2101:7)
+    at 
+Function.listen (E:\f
+yp\Implementation\Fas
+hionVerse\server\node
+_modules\express\lib\
+application.js:635:24
+)
+    at file:///E:/fyp
+/Implementation/Fashi
+onVerse/server/server
+.js:64:5
+    at ModuleJob.run 
+(node:internal/module
+s/esm/module_job:274:
+25)
+    at async onImport
+.tracePromise.__proto
+__ (node:internal/mod
+ules/esm/loader:644:2
+6)
+    at async asyncRun
+EntryPointWithESMLoad
+er (node:internal/mod
+ules/run_main:116:5)
+Emitted 'error' 
+event on Server 
+instance at:
+    at emitErrorNT 
+(node:net:1975:8)
+    at process.proces
+sTicksAndRejections (
+node:internal/process
+/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 5000
+}
+
+Node.js v22.15.0

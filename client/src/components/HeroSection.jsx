@@ -14,20 +14,18 @@ class HeroSection extends Component {
         <div className="overlay"></div>
 
         <div className="hero-content">
-          <p className="season">AUTUMN / WINTER 2024</p>
+          <p className="season">AUTUMN / WINTER </p>
 
           <h1 className="title">FASHIONVERSE</h1>
 
           <p className="subtitle">
-            Redefining Digital Couture.
-            <br />
-            Experience luxury in three dimensions.
+            Where Your Vibe Becomes Reality
           </p>
 
           <Link to="/home" className="enter-btn">
             ENTER STORE
             <img src={arrowIcon} alt="arrow" />
-         </Link>
+          </Link>
 
         </div>
       </section>

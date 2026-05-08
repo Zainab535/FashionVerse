@@ -1,0 +1,59 @@
+﻿Connecting to MongoDB...
+MongoDB connected successfully
+Category management ready - admins can add Women, Men, Kids anytime
+node : node:events:496
+At line:1 char:1
++ node server.js 2>&1 | 
+Out-File -FilePath 
+crash_new.txt -Encoding utf8
++ ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (node:ev  
+  ents:496:String) [], Rem   
+ oteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+      throw er; // Unhandled 
+'error' event
+      ^
+
+Error: listen EADDRINUSE: 
+address already in use 
+:::5000
+    at 
+Server.setupListenHandle [as 
+_listen2] (node:net:1939:16)
+    at listenInCluster 
+(node:net:1996:12)
+    at Server.listen 
+(node:net:2101:7)
+    at Function.listen (C:\Us
+ers\TOSHIBA\Desktop\FYP\Fashi
+onVerse\FashionVerse\FashionV
+erse\server\node_modules\expr
+ess\lib\application.js:635:24
+)
+    at startServer (file:///C
+:/Users/TOSHIBA/Desktop/FYP/F
+ashionVerse/FashionVerse/Fash
+ionVerse/server/server.js:71:
+9)
+    at process.processTicksAn
+dRejections (node:internal/pr
+ocess/task_queues:105:5)
+Emitted 'error' event on 
+Server instance at:
+    at emitErrorNT 
+(node:net:1975:8)
+    at process.processTicksAn
+dRejections (node:internal/pr
+ocess/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 5000
+}
+
+Node.js v22.15.0

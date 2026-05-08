@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Link } from "react-router-dom";
 import "../../styles/brands/BrandDashboard.css";
 
 // Import icons
@@ -15,28 +16,144 @@ import Orders from "./Orders";
 import Inventory from "./Inventory";
 import Settings from "./Setting";
 import AddProduct from "./AddProduct";
+import Customers from "./Customers";
+
+import api from "../../api";
 
 class BrandDashboard extends Component {
   state = {
     activePage: "dashboard",
-    activeTab: "overview"
+    activeTab: "overview",
+    brand: null,
+    stats: null,
+    loading: true,
+    error: null,
+    dropdownOpen: false,
+    period: 30 // Default 30 days
   };
 
+  dropdownRef = React.createRef();
+
+  async componentDidMount() {
+    document.addEventListener('mousedown', this.handleClickOutside);
+    this.fetchData();
+  }
+
+  fetchData = async () => {
+    try {
+      this.setState({ loading: true });
+      const res = await api.get(`/brand/dashboard?days=${this.state.period}`);
+      this.setState({
+        brand: res.data.brand,
+        stats: res.data.stats,
+        loading: false
+      });
+    } catch (err) {
+      console.error("Failed to load dashboard:", err);
+      this.setState({ error: "Failed to load dashboard data", loading: false });
+    }
+  };
+
+  handlePeriodChange = (days) => {
+    this.setState({ period: days }, () => {
+      this.fetchData();
+    });
+  };
+
+  handleExport = () => {
+    const { stats, brand } = this.state;
+    if (!stats) return;
+
+    // Create CSV content
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += `Dashboard Export,${brand?.name || 'Brand'}\n`;
+    csvContent += `Period,${stats.period}\n\n`;
+    csvContent += `Metric,Value\n`;
+    csvContent += `Total Sales,Rs. ${stats.revenue}\n`;
+    csvContent += `Total Products,${stats.products}\n`;
+    csvContent += `Total Orders,${stats.orders}\n`;
+    csvContent += `Pending Orders,${stats.pendingOrders}\n\n`;
+
+    if (stats.recentActivities && stats.recentActivities.length > 0) {
+      csvContent += `Recent Activities\n`;
+      csvContent += `Order ID,Customer,Status,Amount,Date\n`;
+      stats.recentActivities.forEach(act => {
+        csvContent += `${act.orderId},${act.customerName},${act.status},${act.amount},${new Date(act.createdAt).toLocaleDateString()}\n`;
+      });
+    }
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${brand?.name || 'brand'}_report_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleClickOutside);
+  }
+
+  handleClickOutside = (event) => {
+    if (this.dropdownRef.current && !this.dropdownRef.current.contains(event.target)) {
+      this.setState({ dropdownOpen: false });
+    }
+  }
+
+  toggleDropdown = () => {
+    this.setState(prevState => ({
+      dropdownOpen: !prevState.dropdownOpen
+    }));
+  }
+
+  handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    window.location.href = "/login";
+  }
+
   renderPage = () => {
-    const { activePage } = this.state;
+    const { activePage, brand, stats } = this.state;
 
     switch (activePage) {
       case "orders":
         return <Orders />;
       case "inventory":
-        return <Inventory onAddProduct={() => this.setState({ activePage: 'add-product' })} />;
+        return <Inventory
+          onAddProduct={() => this.setState({ activePage: 'add-product' })}
+          onEditProduct={this.handleEditProduct}
+        />;
+      case "customers":
+        return <Customers />;
       case "settings":
         return <Settings />;
       case "add-product":
         return <AddProduct onBack={() => this.setState({ activePage: 'inventory' })} />;
+      case "edit-product":
+        return <AddProduct
+          product={this.state.editingProduct}
+          onBack={() => this.setState({ activePage: 'inventory', editingProduct: null })}
+        />;
       default:
-        return <Dashboard />;
+        return (
+          <Dashboard
+            brand={brand}
+            stats={stats}
+            period={this.state.period}
+            onPeriodChange={this.handlePeriodChange}
+            onExport={this.handleExport}
+          />
+        );
     }
+  };
+
+  handleEditProduct = (product) => {
+    this.setState({
+      activePage: "edit-product",
+      editingProduct: product
+    });
   };
 
   getSearchPlaceholder = () => {
@@ -47,8 +164,11 @@ class BrandDashboard extends Component {
   };
 
   render() {
-    const { activePage, activeTab } = this.state;
+    const { activePage, activeTab, brand, stats, loading, error } = this.state;
     const isEditing = activePage === 'add-product';
+
+    if (loading) return <div className="brand-loading">Loading Dashboard...</div>;
+    if (error) return <div className="brand-error">{error}</div>;
 
     return (
       <div className="brand-layout">
@@ -58,7 +178,9 @@ class BrandDashboard extends Component {
           <div className="sidebar-header">
             <div className="logo-icon">FV</div>
             <div className="logo-text">
-              <h2 className="brand-logo" style={{ fontSize: '13px', whiteSpace: 'nowrap' }}>FashionVerse</h2>
+              <h2 className="brand-logo" style={{ fontSize: '13px', whiteSpace: 'nowrap' }}>
+                {brand?.name || "FashionVerse"}
+              </h2>
               <span className="brand-subtitle">Brand Portal</span>
             </div>
           </div>
@@ -78,7 +200,7 @@ class BrandDashboard extends Component {
             >
               <img src={ordersIcon} alt="Orders" className="nav-icon-img" />
               Orders
-              <span className="nav-badge">18</span>
+              {stats?.pendingOrders > 0 && <span className="nav-badge">{stats.pendingOrders}</span>}
             </button>
 
             <button
@@ -89,7 +211,10 @@ class BrandDashboard extends Component {
               Inventory
             </button>
 
-            <button className="nav-item">
+            <button
+              className={`nav-item ${activePage === "customers" ? "active" : ""}`}
+              onClick={() => this.setState({ activePage: "customers" })}
+            >
               <img src={customersIcon} alt="Customers" className="nav-icon-img" />
               Customers
             </button>
@@ -103,9 +228,13 @@ class BrandDashboard extends Component {
               <img src={settingsIcon} alt="Settings" className="nav-icon-img" />
               Settings
             </button>
-            <button className="add-product-btn" style={{ background: '#000', color: '#fff', borderRadius: '4px' }}>
-              <span style={{ fontSize: '14px' }}>↗</span> View Live Store
-            </button>
+            {brand && (
+              <Link to={`/brand/${brand._id || brand.id}`} target="_blank" style={{ textDecoration: 'none' }}>
+                <button className="add-product-btn" style={{ background: '#000', color: '#fff', borderRadius: '4px', width: '100%' }}>
+                  <span style={{ fontSize: '14px' }}>↗</span> View Live Store
+                </button>
+              </Link>
+            )}
           </div>
         </aside>
 
@@ -155,12 +284,85 @@ class BrandDashboard extends Component {
                 <button className="icon-btn">
                   <img src={bellIcon} alt="Notifications" className="bell-icon-img" />
                 </button>
-                <div className="user-profile">
-                  <div style={{ textAlign: 'right', marginRight: '10px' }}>
-                    <div className="user-name" style={{ fontSize: '13px', lineHeight: '1', fontWeight: '700' }}>Alexander McQueen</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>Administrator</div>
+                <div className="user-menu-container" style={{ position: 'relative' }} ref={this.dropdownRef}>
+                  <div
+                    className="user-profile"
+                    onClick={this.toggleDropdown}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+                  >
+                    <div style={{ textAlign: 'right' }}>
+                      <div className="user-name" style={{ fontSize: '13px', lineHeight: '1', fontWeight: '700' }}>
+                        {brand?.name}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8' }}>Brand Owner</div>
+                    </div>
+                    <div className="user-avatar" style={{ background: '#e2e8f0', width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden' }}>
+                      {brand?.logo ? (
+                        <img src={`http://localhost:5000/uploads/${brand.logo}`} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontWeight: 'bold' }}>
+                          {brand?.name?.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>{this.state.dropdownOpen ? '▲' : '▼'}</span>
                   </div>
-                  <div className="user-avatar" style={{ background: '#e2e8f0', width: '36px', height: '36px' }}></div>
+
+                  {this.state.dropdownOpen && (
+                    <div className="dropdown-menu" style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      marginTop: '10px',
+                      background: '#fff',
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                      borderRadius: '8px',
+                      padding: '8px',
+                      zIndex: 100,
+                      minWidth: '160px',
+                      border: '1px solid #f1f5f9'
+                    }}>
+                      <button
+                        className="dropdown-item"
+                        onClick={() => { this.setState({ activePage: "settings", dropdownOpen: false }) }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '10px',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          borderRadius: '4px',
+                          color: '#1e293b'
+                        }}
+                      >
+                        <span>👤</span> Profile Settings
+                      </button>
+                      <div style={{ height: '1px', background: '#f1f5f9', margin: '4px 0' }}></div>
+                      <button
+                        className="dropdown-item"
+                        onClick={this.handleLogout}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '10px',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          borderRadius: '4px',
+                          color: '#cc0000'
+                        }}
+                      >
+                        <span>🚪</span> Logout
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </header>

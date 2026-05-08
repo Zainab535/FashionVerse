@@ -1,0 +1,16 @@
+Connected to MongoDB
+Recent Registered Users:
+- hyberistics (hyberistics7617@gmail.com) [customer] Created: Thu May 07 2026 13:18:08 GMT+0500 (Pakistan Standard Time)
+- HadiaIjaz (221400060@gift.edu.pk) [customer] Created: Tue May 05 2026 12:46:37 GMT+0500 (Pakistan Standard Time)
+- Testing Owner (221400083@gift.edu.pk) [brand] Created: Wed Feb 25 2026 13:53:54 GMT+0500 (Pakistan Standard Time)
+- LUMINA Owner (dr.shita0019@gmail.com) [brandowner] Created: Mon Feb 16 2026 16:39:54 GMT+0500 (Pakistan Standard Time)
+- ZARQ Owner (softsmarks@gmail.com) [brandowner] Created: Mon Feb 16 2026 16:00:30 GMT+0500 (Pakistan Standard Time)
+- XENIQUE Owner (zainabrasheed535@gmail.com) [brand] Created: Sat Feb 14 2026 17:23:24 GMT+0500 (Pakistan Standard Time)
+- Momna (momnaasghar117@gmail.com) [customer] Created: Thu Feb 12 2026 13:45:48 GMT+0500 (Pakistan Standard Time)
+- MINIMEHR Owner (221400110@gift.edu.pk) [brand] Created: Thu Feb 12 2026 12:58:42 GMT+0500 (Pakistan Standard Time)
+- RAHMEER Owner (221400097@gift.edu.pk) [brand] Created: Thu Feb 12 2026 12:40:18 GMT+0500 (Pakistan Standard Time)
+- KINGSWARD (221400016@gift.edu.pk) [brandOwner] Created: Tue Feb 03 2026 14:32:39 GMT+0500 (Pakistan Standard Time)
+- artofgallery19@gmail.com (artofgallery19@gmail.com) [brandowner] Created: Tue Feb 03 2026 14:21:04 GMT+0500 (Pakistan Standard Time)
+- PRISM (prism@gmail.com) [brandOwner] Created: Tue Jan 27 2026 15:10:43 GMT+0500 (Pakistan Standard Time)
+- GULNAAR (hadiaijaz7617@gmail.com) [brandOwner] Created: Tue Jan 27 2026 13:42:10 GMT+0500 (Pakistan Standard Time)
+- admin (admin@myapp.com) [admin] Created: Fri Jan 16 2026 12:35:39 GMT+0500 (Pakistan Standard Time)

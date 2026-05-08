@@ -2,49 +2,121 @@ import React, { Component } from "react";
 import StoreNavbar from "../components/StoreNavbar";
 import ProductFooter from "../components/ProductFooter";
 import { CartContext } from "../context/CartContext";
+import Breadcrumbs from "../components/Breadcrumbs";
 import "../styles/Payment.css";
 import { withRouter } from "../utils/withRouter";
 
+
+import api from "../api";
 
 class PaymentPage extends Component {
   static contextType = CartContext;
 
   state = {
-    cardNumber: "",
-    expiry: "",
-    cvc: "",
-    name: "",
-    saveCard: false,
+    loading: false,
     error: "",
   };
 
-  handleChange = (e) => {
-    this.setState({ [e.target.name]: e.target.value, error: "" });
-  };
+  componentDidMount() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("cancelled")) {
+      this.setState({ error: "Payment was cancelled. Please try again." });
+    }
 
-  handlePay = () => {
-    const { cardNumber, expiry, cvc, name } = this.state;
+    // Enrich cart items missing name by fetching from API
+    this.enrichItemsIfNeeded();
+  }
 
-    if (!cardNumber || !expiry || !cvc || !name) {
-      this.setState({
-        error: "Please fill all required payment fields",
-      });
+  enrichItemsIfNeeded = async () => {
+    const { cart, buyNowItem } = this.context;
+    const checkoutItems = buyNowItem ? [buyNowItem] : (cart || []);
+
+    let needsUpdate = false;
+    const enriched = [...checkoutItems];
+
+    for (let i = 0; i < enriched.length; i++) {
+      const item = enriched[i];
+      if (!item.name) {
+        const productId = item.id || item._id;
+        if (productId) {
+          try {
+            const res = await api.get(`/products/${productId}`);
+            const prod = res.data;
+            enriched[i] = {
+              ...item,
+              name: prod.name,
+              image: item.image || (prod.images?.[0] ? `http://localhost:5000/uploads/${prod.images[0]}` : ''),
+              price: item.price || prod.price
+            };
+            needsUpdate = true;
+          } catch (err) {
+            console.warn('Could not enrich item:', err);
+          }
+        }
+      }
+    }
+
+    if (needsUpdate) {
+      // Update cart context with enriched items
+      if (buyNowItem) {
+        this.context.setBuyNowItem(enriched[0]);
+      }
+      // For cart items, we update by re-adding via the cart context
+      // Since cart is stored in localStorage, force a page re-render
+      this.forceUpdate();
+    }
+  }
+
+  handlePay = async () => {
+    const { cart, buyNowItem } = this.context;
+
+    // Use buyNowItem if it exists, otherwise use cart
+    const checkoutItems = buyNowItem ? [buyNowItem] : cart;
+
+    // Get shipping details from localStorage (saved in ShippingPage)
+    const shippingAddress = JSON.parse(localStorage.getItem("shippingAddress") || "{}");
+
+    if (!shippingAddress.address) {
+      this.setState({ error: "Missing shipping information. Please go back." });
       return;
     }
 
-    // ✅ Payment successful (demo)
-    this.props.navigate("/order-success");
+    this.setState({ loading: true, error: "" });
+
+    try {
+      // 1. Create Stripe Session via our Backend
+      const res = await api.post("/orders/create-checkout-session", {
+        items: checkoutItems,
+        shippingAddress
+      });
+
+      if (res.data.url) {
+        // 2. Redirect user to Stripe Checkout
+        window.location.href = res.data.url;
+      }
+    } catch (err) {
+      console.error("Payment failed:", err);
+      this.setState({
+        error: err.response?.data?.message || "Something went wrong. Please try again.",
+        loading: false
+      });
+    }
   };
 
   render() {
-    const { cart } = this.context;
+    const { cart, buyNowItem } = this.context;
+
+    // 🚀 USE buyNowItem if it exists (Direct Buy Mode), else use Cart
+    const checkoutItems = buyNowItem ? [buyNowItem] : (cart || []);
     const { error } = this.state;
 
-    const subtotal = cart.reduce(
+    const subtotal = checkoutItems.reduce(
       (sum, item) => {
-        // Remove '$' and ',' then parse
-        const price = parseFloat(item.price.replace(/[$,]/g, ""));
-        return sum + price * item.qty;
+        const priceVal = typeof item.price === 'string'
+          ? parseFloat(item.price.replace(/[Rs. ,]/g, ""))
+          : item.price;
+        const quantity = item.qty || item.quantity || 1;
+        return sum + (priceVal || 0) * quantity;
       },
       0
     );
@@ -53,60 +125,42 @@ class PaymentPage extends Component {
       <>
         <StoreNavbar />
 
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+          <Breadcrumbs paths={[
+            { label: "Cart", url: "/home" },
+            { label: "Shipping", url: "/checkout/shipping" },
+            { label: "Payment", url: "/checkout/payment" }
+          ]} />
+        </div>
         <section className="payment-page">
           {/* LEFT */}
           <div className="payment-left">
             <h2>Payment Details</h2>
             <p className="subtitle">Complete your purchase securely.</p>
 
-            <div className="stripe-box">stripe</div>
-
-            <label>Card Number *</label>
-            <input
-              name="cardNumber"
-              placeholder="0000 0000 0000 0000"
-              onChange={this.handleChange}
-            />
-
-            <div className="row">
-              <input
-                name="expiry"
-                placeholder="MM / YY"
-                onChange={this.handleChange}
-              />
-              <input
-                name="cvc"
-                placeholder="CVC"
-                onChange={this.handleChange}
-              />
+            <div className="stripe-setup-info">
+              <div className="stripe-branding">
+                <span className="stripe-logo">Stripe</span>
+                <span className="secure-badge">Verified Secure 🔒</span>
+              </div>
+              <p>
+                You will be redirected to Stripe's secure payment page to complete your transaction.
+                We support all major credit/debit cards.
+              </p>
             </div>
 
-            <label>Cardholder Name *</label>
-            <input
-              name="name"
-              placeholder="Full Name"
-              onChange={this.handleChange}
-            />
+            {error && <p className="error" style={{ color: '#c41e3a', marginBottom: '15px' }}>{error}</p>}
 
-            <div className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={this.state.saveCard}
-                onChange={() =>
-                  this.setState({ saveCard: !this.state.saveCard })
-                }
-              />
-              <span>Save card details for future purchases</span>
-            </div>
-
-            {error && <p className="error">{error}</p>}
-
-            <button className="pay-btn" onClick={this.handlePay}>
-              Pay ${subtotal.toFixed(2)} →
+            <button
+              className="pay-btn"
+              onClick={this.handlePay}
+              disabled={this.state.loading}
+            >
+              {this.state.loading ? "Redirecting to Stripe..." : `Continue to Payment (Rs. ${subtotal.toLocaleString()}) →`}
             </button>
 
             <p className="secure-note">
-              🔒 Payments are secure and encrypted with 256-bit SSL
+              🔒 Your payment information is processed by Stripe and never stored on our servers.
             </p>
           </div>
 
@@ -114,23 +168,25 @@ class PaymentPage extends Component {
           <div className="payment-right">
             <h3>Order Summary</h3>
 
-            {cart.map((item) => (
+            {checkoutItems.map((item) => (
               <div key={item.id} className="summary-item">
                 <div>
                   <strong>{item.name}</strong>
-                  <p>Qty: {item.qty}</p>
+                  <p>Qty: {item.qty || item.quantity || 1}</p>
                 </div>
-                <span>{item.price}</span>
+                <span>
+                  {typeof item.price === 'number' ? `Rs. ${item.price.toLocaleString()}` : item.price}
+                </span>
               </div>
             ))}
 
             <div className="summary">
-              <div><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+              <div><span>Subtotal</span><span>Rs. {subtotal.toLocaleString()}</span></div>
               <div><span>Shipping</span><span>Free</span></div>
-              <div><span>Taxes</span><span>$0.00</span></div>
+              <div><span>Taxes</span><span>Rs. 0</span></div>
               <div className="total">
                 <span>Total</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>Rs. {subtotal.toLocaleString()}</span>
               </div>
             </div>
           </div>

@@ -7,14 +7,14 @@ import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import brandRoutes from './routes/brandRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import settingRoutes from './routes/settingRoutes.js';
 import Category from './models/Category.js';
-
+import recommendationRoutes from './routes/recommendationRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 dotenv.config();
 
 const app = express();
-
-// Connect to MongoDB
-connectDB();
 
 // Initialize default categories
 const initializeDefaultCategories = async () => {
@@ -25,9 +25,6 @@ const initializeDefaultCategories = async () => {
     console.error('Error initializing categories:', error.message);
   }
 };
-
-// Initialize categories after DB connection
-setTimeout(initializeDefaultCategories, 1000);
 
 // Middleware
 app.use(cors());
@@ -43,6 +40,10 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/brand", brandRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/settings", settingRoutes);
+app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -60,7 +61,22 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Connect to MongoDB and then start server
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    // Initialize default categories
+    await initializeDefaultCategories();
+
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error.message);
+    // Note: Don't exit process here because nodemon will try to restart
+  }
+};
+
+startServer();

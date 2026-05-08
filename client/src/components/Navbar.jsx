@@ -24,7 +24,7 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
 
-import logo from "../assets/images/logo.png";
+import logo from "../assets/images/logo.jpg";
 import menuIcon from "../assets/icons/menu.svg";
 import searchIcon from "../assets/icons/search.svg";
 import bagIcon from "../assets/icons/shopping-bag.svg";

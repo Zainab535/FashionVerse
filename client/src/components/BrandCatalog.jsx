@@ -1,28 +1,27 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import brand1 from "../assets/images/brand1.webp";
-import brand2 from "../assets/images/brand2.jpg";
-import brand3 from "../assets/images/brand3.png";
-import brand4 from "../assets/images/brand4.png";
+import api from "../api";
 
 class BrandCatalog extends Component {
   constructor(props) {
     super(props);
-    this.brands = [
-      { id: "brand1", image: brand1 },
-      { id: "brand2", image: brand2 },
-      { id: "brand3", image: brand3 },
-      { id: "brand4", image: brand4 },
-      { id: "brand1", image: brand1 },
-      { id: "brand2", image: brand2 },
-      { id: "brand3", image: brand3 },
-      { id: "brand4", image: brand4 },
-    ];
+    this.state = {
+      brands: [],
+      loading: true
+    };
     this.scrollRef = React.createRef();
     this.autoScrollInterval = null;
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    try {
+      const res = await api.get("/brand/approved");
+      this.setState({ brands: res.data, loading: false });
+    } catch (err) {
+      console.error("Failed to fetch brands:", err);
+      this.setState({ loading: false });
+    }
+
     // Auto-scroll every 5 seconds
     this.autoScrollInterval = setInterval(() => {
       this.autoScroll();
@@ -64,32 +63,45 @@ class BrandCatalog extends Component {
   };
 
   render() {
+    const { brands, loading } = this.state;
+
+    if (loading) return null;
+
     return (
-      <section className="brand-section">
-        <h2>Popular Brands</h2>
+      <section className="brand-section" id="brands">
+        <p className="brand-section-subtitle">Curated Excellence</p>
+        <h2>Our Brands</h2>
 
         <div className="brand-container">
-          <button className="scroll-btn left" onClick={() => this.scroll("left")}>
-            ‹
-          </button>
+          <div className="brand-scroll snap-x" ref={this.scrollRef}>
+            {brands.map((b, i) => (
+              <div key={i} className="brand-card-wrapper">
+                <div className="modern-brand-card">
+                  <div className="card-background-image" style={{
+                    backgroundImage: b.logo ? `url(http://localhost:5000/uploads/${b.logo})` : 'none',
+                    backgroundColor: b.logo ? 'transparent' : '#f5efe6'
+                  }}>
+                    {!b.logo && <span className="brand-placeholder-letter">{b.name.charAt(0)}</span>}
+                  </div>
 
-          <div className="brand-scroll" ref={this.scrollRef}>
-            {this.brands.map((b, i) => (
-              <Link to={`/brand/${b.id}`} key={i} className="brand-card-link">
-                <div className="brand-card">
-                  <img src={b.image} alt="Brand" />
-                  <div className="brand-overlay">
-                    <button className="overlay-btn" onClick={(e) => e.preventDefault()}>2D Store</button>
-                    <button className="overlay-btn dark" onClick={(e) => e.preventDefault()}>3D Store</button>
+                  <div className="card-overlay">
+                    <div className="card-info">
+                      <h3>{b.name}</h3>
+                      <p className="brand-label">Premium Collection</p>
+                    </div>
+                    <div className="card-actions-overlay">
+                      <Link to={`/brand/${b._id}`} className="action-btn-mini btn-2d-mini">
+                        2D
+                      </Link>
+                      <button className="action-btn-mini btn-3d-mini" onClick={() => alert("3D Store coming soon!")}>
+                        3D
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
-
-          <button className="scroll-btn right" onClick={() => this.scroll("right")}>
-            ›
-          </button>
         </div>
       </section>
     );

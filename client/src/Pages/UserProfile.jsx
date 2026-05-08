@@ -1,7 +1,11 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import { withRouter } from "../utils/withRouter";
 import StoreNavbar from "../components/StoreNavbar";
-import StoreFooter from "../components/StoreFooter";
+import ProductFooter from "../components/ProductFooter";
+import Breadcrumbs from "../components/Breadcrumbs";
+import api from "../api";
+import { WishlistContext } from "../context/WishlistContext";
 import dashboardIcon from "../assets/icons/dashboard.svg";
 import reviewsIcon from "../assets/icons/reviews.svg";
 import wishlistIcon from "../assets/icons/my-wish-list.png";
@@ -12,82 +16,455 @@ import locationIcon from "../assets/icons/location_on.svg";
 import calendarIcon from "../assets/icons/calendar_month.png";
 import cameraIcon from "../assets/icons/photo_camera.svg";
 import "../styles/UserProfile.css";
+import "../styles/UserProfile-Wishlist-Reviews.css";
 
 class UserProfile extends Component {
+  static contextType = WishlistContext;
   state = {
+    // User profile data (fetched from backend)
     user: {
-      name: "Isabella Rossi",
-      bio: "Fashion enthusiast & digital collector. Obsessed with sustainable luxury and virtual drops.",
-      location: "Milan, Italy",
-      joinedDate: "Joined 2021",
+      name: "",
+      email: "",
+      phone: "",
+      bio: "",
+      location: "",
+      joinedDate: "",
       profileImage: null,
-      verified: true,
+      verified: false,
     },
     activeTab: "overview",
-    recentOrders: [
-      {
-        id: 1,
-        name: "Structured Wool Coat",
-        size: "Size: M • Ridge",
-        status: "Delivered",
-        price: "$895.00",
-        image: null,
-        date: "Order #851201",
-      },
-      {
-        id: 2,
-        name: "Leather Ankle Boots",
-        size: "Size: 39 • Black",
-        status: "Shipped",
-        price: "$450.00",
-        image: null,
-        date: "Order #851202",
-      },
-      {
-        id: 3,
-        name: "Silk Evening Dress",
-        size: "Size: S • Navy",
-        status: "Processing",
-        price: "$650.00",
-        image: null,
-        date: "Order #851203",
-      },
-    ],
-    digitalWardrobe: [
-      {
-        id: 1,
-        name: "Chrome Bag V.02",
-        type: "NFT Asset",
-        image: null,
-      },
-    ],
-    wishlist: [
-      {
-        id: 1,
-        name: "Premium Cashmere Sweater",
-        price: "$320.00",
-        image: null,
-      },
-      {
-        id: 2,
-        name: "Designer Sunglasses",
-        price: "$450.00",
-        image: null,
-      },
-    ],
+
+    // Orders from backend
+    orders: [],
+    ordersLoading: true,
+
+    // Profile loading & edit states
+    profileLoading: true,
+    isEditing: false,
+
+    // Settings form fields
+    editName: "",
+    editEmail: "",
+    editPhone: "",
+    editBio: "",
+    editLocation: "",
+
+    // Password change fields
+    currentPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
+
+    // UI feedback
+    profileMsg: "",
+    profileError: "",
+    passwordMsg: "",
+    passwordError: "",
+    savingProfile: false,
+    savingPassword: false,
+
+    // Activity: Support Messages
+    messages: [],
+    messagesLoading: true,
+
+    // Wishlist and reviews
+    wishlistItems: [],
+    userReviews: [],
+    reviewsLoading: true,
+
+    // Review Modal State
+    showReviewModal: false,
+    selectedProductForReview: null,
+    selectedOrderForReview: null,
+    reviewRating: 5,
+    reviewComment: "",
+    submittingReview: false,
+    reviewError: "",
+    reviewMsg: ""
   };
 
+  componentDidMount() {
+    // 🔐 Role-based guard: only customers can access this page
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (!token) {
+      this.props.navigate("/login");
+      return;
+    }
+
+    if (role === "admin") {
+      this.props.navigate("/admin/dashboard");
+      return;
+    }
+
+    if (role === "brand") {
+      this.props.navigate("/brand/dashboard");
+      return;
+    }
+
+    this.fetchProfile();
+    this.fetchOrders();
+    this.fetchMessages();
+    this.loadWishlistItems();
+    this.fetchUserReviews();
+  }
+
+  /* =============================================
+     FETCH PROFILE FROM BACKEND
+  ============================================= */
+  fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        this.props.navigate("/login");
+        return;
+      }
+
+      const res = await api.get("/auth/profile");
+      const u = res.data;
+
+      // Format joined date
+      const joinedDate = u.createdAt
+        ? new Date(u.createdAt).toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        })
+        : "";
+
+      this.setState({
+        user: {
+          name: u.name || "",
+          email: u.email || "",
+          phone: u.phone || "",
+          bio: u.bio || "",
+          location: u.location || "",
+          joinedDate: `Joined ${joinedDate}`,
+          profileImage: null,
+          verified: true,
+        },
+        editName: u.name || "",
+        editEmail: u.email || "",
+        editPhone: u.phone || "",
+        editBio: u.bio || "",
+        editLocation: u.location || "",
+        profileLoading: false,
+      });
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        this.props.navigate("/login");
+      }
+      this.setState({ profileLoading: false });
+    }
+  };
+
+  /* =============================================
+     FETCH USER ORDERS FROM BACKEND
+  ============================================= */
+  fetchOrders = async () => {
+    try {
+      const res = await api.get("/orders");
+      this.setState({ orders: res.data, ordersLoading: false });
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+      this.setState({ orders: [], ordersLoading: false });
+    }
+  };
+
+  fetchMessages = async () => {
+    try {
+      const res = await api.get("/contact/my-messages");
+      this.setState({ messages: res.data, messagesLoading: false });
+    } catch (error) {
+      console.error("Failed to fetch messages:", error);
+      this.setState({ messages: [], messagesLoading: false });
+    }
+  };
+
+  loadWishlistItems = () => {
+    // Load from wishlist context
+    if (this.context && this.context.wishlist) {
+      this.setState({ wishlistItems: this.context.wishlist });
+    }
+  };
+
+  fetchUserReviews = async () => {
+    try {
+      this.setState({ reviewsLoading: true });
+      const res = await api.get("/reviews/user");
+      this.setState({ userReviews: res.data, reviewsLoading: false });
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+      this.setState({ reviewsLoading: false });
+    }
+  };
+
+  handleOpenReviewModal = (product, order) => {
+    this.setState({
+      selectedProductForReview: product,
+      selectedOrderForReview: order,
+      showReviewModal: true,
+      reviewRating: 5,
+      reviewComment: "",
+      reviewError: "",
+      reviewMsg: ""
+    });
+  };
+
+  handleCloseReviewModal = () => {
+    this.setState({ showReviewModal: false });
+  };
+
+  submitReview = async () => {
+    const { selectedProductForReview, selectedOrderForReview, reviewRating, reviewComment } = this.state;
+    
+    if (!reviewComment.trim()) {
+      this.setState({ reviewError: "Please write a comment" });
+      return;
+    }
+
+    this.setState({ submittingReview: true, reviewError: "", reviewMsg: "" });
+
+    try {
+      await api.post("/reviews", {
+        productId: selectedProductForReview._id || selectedProductForReview.id,
+        orderId: selectedOrderForReview._id,
+        rating: reviewRating,
+        comment: reviewComment
+      });
+
+      this.setState({
+        reviewMsg: "Review submitted successfully!",
+        submittingReview: false,
+      });
+
+      // Refresh data
+      this.fetchUserReviews();
+      
+      setTimeout(() => {
+        this.handleCloseReviewModal();
+      }, 1500);
+
+    } catch (error) {
+      this.setState({
+        reviewError: error.response?.data?.message || "Failed to submit review",
+        submittingReview: false
+      });
+    }
+  };
+
+  /* =============================================
+     UPDATE PROFILE SETTINGS
+  ============================================= */
+  handleUpdateProfile = async () => {
+    const { editName, editEmail, editPhone, editBio, editLocation } = this.state;
+
+    if (!editName.trim() || !editEmail.trim()) {
+      this.setState({ profileError: "Name and Email are required", profileMsg: "" });
+      return;
+    }
+
+    this.setState({ savingProfile: true, profileError: "", profileMsg: "" });
+
+    try {
+      const res = await api.put("/auth/profile", {
+        name: editName,
+        email: editEmail,
+        phone: editPhone,
+        bio: editBio,
+        location: editLocation,
+      });
+
+      const u = res.data;
+      const joinedDate = u.createdAt
+        ? new Date(u.createdAt).toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        })
+        : this.state.user.joinedDate;
+
+      this.setState({
+        user: {
+          ...this.state.user,
+          name: u.name,
+          email: u.email,
+          phone: u.phone || "",
+          bio: u.bio || "",
+          location: u.location || "",
+          joinedDate: joinedDate.startsWith("Joined") ? joinedDate : `Joined ${joinedDate}`,
+        },
+        profileMsg: "Profile updated successfully!",
+        profileError: "",
+        savingProfile: false,
+        isEditing: false,
+      });
+
+      // Clear success message after 3 seconds
+      setTimeout(() => this.setState({ profileMsg: "" }), 3000);
+    } catch (error) {
+      this.setState({
+        profileError: error.response?.data?.message || "Failed to update profile",
+        profileMsg: "",
+        savingProfile: false,
+      });
+    }
+  };
+
+  /* =============================================
+     CHANGE PASSWORD
+  ============================================= */
+  handleChangePassword = async () => {
+    const { currentPassword, newPassword, confirmNewPassword } = this.state;
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      this.setState({ passwordError: "All password fields are required", passwordMsg: "" });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      this.setState({ passwordError: "New password must be at least 6 characters", passwordMsg: "" });
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      this.setState({ passwordError: "New passwords do not match", passwordMsg: "" });
+      return;
+    }
+
+    this.setState({ savingPassword: true, passwordError: "", passwordMsg: "" });
+
+    try {
+      await api.put("/auth/password", {
+        currentPassword,
+        newPassword,
+      });
+
+      this.setState({
+        passwordMsg: "Password changed successfully!",
+        passwordError: "",
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+        savingPassword: false,
+      });
+
+      setTimeout(() => this.setState({ passwordMsg: "" }), 3000);
+    } catch (error) {
+      this.setState({
+        passwordError: error.response?.data?.message || "Failed to change password",
+        passwordMsg: "",
+        savingPassword: false,
+      });
+    }
+  };
+
+  /* =============================================
+     SIGN OUT
+  ============================================= */
+  handleSignOut = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("cart");
+    this.props.navigate("/login");
+  };
+
+  /* =============================================
+     TAB CHANGE
+  ============================================= */
   handleTabChange = (tab) => {
-    this.setState({ activeTab: tab });
+    this.setState({ activeTab: tab, profileMsg: "", profileError: "", passwordMsg: "", passwordError: "" });
   };
 
+  /* =============================================
+     HELPER: GET ORDER STATUS COLOR
+  ============================================= */
+  getStatusClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case "delivered":
+        return "delivered";
+      case "shipped":
+        return "shipped";
+      case "processing":
+        return "processing";
+      case "pending":
+        return "pending";
+      case "cancelled":
+        return "cancelled";
+      default:
+        return "pending";
+    }
+  };
+
+  /* =============================================
+     RENDER
+  ============================================= */
+  // Helper to build image URL for product objects or filenames
+  getImageUrl = (productOrImage) => {
+    if (!productOrImage) return "https://via.placeholder.com/100";
+
+    // If a product object provided
+    if (typeof productOrImage === 'object') {
+      const imgs = productOrImage.images || [];
+      const first = imgs.length ? imgs[0] : productOrImage.image || "";
+      if (!first) return "https://via.placeholder.com/100";
+      return (first.startsWith && first.startsWith('http')) ? first : `http://localhost:5000/uploads/${first}`;
+    }
+
+    // If a string filename / url provided
+    const str = productOrImage.toString();
+    if (!str) return "https://via.placeholder.com/100";
+    return str.startsWith('http') ? str : `http://localhost:5000/uploads/${str}`;
+  }
   render() {
-    const { user, activeTab, recentOrders, digitalWardrobe, wishlist } = this.state;
+    const {
+      user,
+      activeTab,
+      orders,
+      ordersLoading,
+      profileLoading,
+      isEditing,
+      editName,
+      editEmail,
+      editPhone,
+      editBio,
+      editLocation,
+      currentPassword,
+      newPassword,
+      confirmNewPassword,
+      profileMsg,
+      profileError,
+      passwordMsg,
+      passwordError,
+      savingProfile,
+      savingPassword,
+    } = this.state;
+
+    if (profileLoading) {
+      return (
+        <>
+          <StoreNavbar />
+          <main className="profile-container">
+            <div className="profile-loading">
+              <div className="loading-spinner"></div>
+              <p>Loading your profile...</p>
+            </div>
+          </main>
+        </>
+      );
+    }
+
+    // Recent orders for overview (show max 3)
+    const recentOrders = orders.slice(0, 3);
 
     return (
       <>
         <StoreNavbar />
         <main className="profile-container">
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+            <Breadcrumbs paths={[{ label: "My Profile", url: "/profile" }]} />
+          </div>
           {/* Profile Header */}
           <section className="profile-header">
             <div className="profile-header-content">
@@ -97,7 +474,7 @@ class UserProfile extends Component {
                     <img src={user.profileImage} alt={user.name} />
                   ) : (
                     <div className="avatar-placeholder">
-                      {user.name.charAt(0)}
+                      {user.name.charAt(0).toUpperCase()}
                     </div>
                   )}
                   {user.verified && (
@@ -109,12 +486,14 @@ class UserProfile extends Component {
 
                 <div className="profile-details">
                   <h1>{user.name}</h1>
-                  <p className="bio">{user.bio}</p>
+                  <p className="bio">{user.bio || "Fashion enthusiast at FashionVerse"}</p>
                   <div className="profile-meta">
-                    <span className="location">
-                      <img src={locationIcon} alt="" className="meta-icon" />
-                      {user.location}
-                    </span>
+                    {user.location && (
+                      <span className="location">
+                        <img src={locationIcon} alt="" className="meta-icon" />
+                        {user.location}
+                      </span>
+                    )}
                     <span className="joined">
                       <img src={calendarIcon} alt="" className="meta-icon" />
                       {user.joinedDate}
@@ -124,8 +503,12 @@ class UserProfile extends Component {
               </div>
 
               <div className="profile-actions">
-                <button className="btn-primary">Edit Profile</button>
-                <button className="btn-secondary">Share</button>
+                <button
+                  className="btn-primary"
+                  onClick={() => this.handleTabChange("settings")}
+                >
+                  Edit Profile
+                </button>
               </div>
             </div>
           </section>
@@ -156,7 +539,7 @@ class UserProfile extends Component {
                     onClick={() => this.handleTabChange("wishlist")}
                   >
                     <img src={wishlistIcon} alt="" className="sidebar-icon" />
-                    Wishlist (4)
+                    Wishlist
                   </button>
                   <button
                     className={`sidebar-link ${activeTab === "reviews" ? "active" : ""}`}
@@ -179,231 +562,592 @@ class UserProfile extends Component {
                     Profile Settings
                   </button>
                   <button
-                    className={`sidebar-link ${activeTab === "payment" ? "active" : ""}`}
-                    onClick={() => this.handleTabChange("payment")}
+                    className={`sidebar-link ${activeTab === "password" ? "active" : ""}`}
+                    onClick={() => this.handleTabChange("password")}
                   >
                     <img src={paymentIcon} alt="" className="sidebar-icon" />
-                    Payment Methods
+                    Change Password
                   </button>
                 </nav>
               </div>
 
               <div className="sidebar-section">
-                <button className="btn-signout">🚪 Sign Out</button>
+                <button className="btn-signout" onClick={this.handleSignOut}>
+                  🚪 Sign Out
+                </button>
               </div>
             </aside>
 
             {/* Main Content Area */}
             <div className="profile-main">
-              {/* Overview Tab */}
+              {/* ===================== OVERVIEW TAB ===================== */}
               {activeTab === "overview" && (
                 <div className="tab-content overview-tab">
+                  {/* Stats Cards */}
+                  <div className="stats-row">
+                    <div className="stat-card">
+                      <span className="stat-number">{orders.length}</span>
+                      <span className="stat-label">Total Orders</span>
+                    </div>
+                    <div className="stat-card">
+                      <span className="stat-number">
+                        {orders.filter((o) => o.orderStatus === "delivered").length}
+                      </span>
+                      <span className="stat-label">Delivered</span>
+                    </div>
+                    <div className="stat-card">
+                      <span className="stat-number">
+                        {orders.filter(
+                          (o) =>
+                            o.orderStatus === "processing" ||
+                            o.orderStatus === "pending" ||
+                            o.orderStatus === "shipped"
+                        ).length}
+                      </span>
+                      <span className="stat-label">In Progress</span>
+                    </div>
+                  </div>
+
                   <div className="content-grid">
                     {/* Recent Orders */}
                     <div className="content-section">
                       <div className="section-header">
                         <h2>Recent Orders</h2>
-                        <a href="#" className="view-all">
+                        <button
+                          className="view-all"
+                          onClick={() => this.handleTabChange("orders")}
+                        >
                           View All
-                        </a>
+                        </button>
                       </div>
 
                       <div className="orders-list">
-                        {recentOrders.map((order) => (
-                          <div key={order.id} className="order-card">
-                            <div className="order-image">
-                              {order.image ? (
-                                <img src={order.image} alt={order.name} />
-                              ) : (
-                                <div className="image-placeholder"></div>
-                              )}
+                        {ordersLoading ? (
+                          <p className="empty-state">Loading orders...</p>
+                        ) : recentOrders.length === 0 ? (
+                          <p className="empty-state">
+                            No orders yet. Start shopping to see your orders here!
+                          </p>
+                        ) : (
+                          recentOrders.map((order) => (
+                            <div
+                              key={order._id}
+                              className="order-card"
+                              onClick={() => {
+                                if (order.paymentStatus === 'pending') {
+                                  const cartItems = order.items.map(item => ({
+                                    id: item.productId._id || item.productId,
+                                    name: item.productId.name || "Product",
+                                    price: item.price.toString(),
+                                    image: this.getImageUrl(item.productId?.images?.[0] || item.productId?.image || item.productId),
+                                    qty: item.quantity
+                                  }));
+                                  localStorage.setItem("cart", JSON.stringify(cartItems));
+                                  window.location.href = "/checkout/shipping";
+                                }
+                              }}
+                              style={order.paymentStatus === 'pending' ? { cursor: 'pointer', borderColor: '#e65100' } : {}}
+                            >
+                              <div className="order-image">
+                                {order.items?.[0]?.productId ? (
+                                  <img
+                                    src={this.getImageUrl(order.items[0].productId)}
+                                    alt={order.items[0].productId.name || "Product"}
+                                    onError={(e) => { e.target.src = 'https://via.placeholder.com/100'; }}
+                                  />
+                                ) : (
+                                  <div className="image-placeholder"></div>
+                                )}
+                              </div>
+                              <div className="order-info">
+                                <h4>
+                                  {order.items?.[0]?.productId?.name || "Order Item"}
+                                  {order.items.length > 1 && ` + ${order.items.length - 1} more`}
+                                </h4>
+                                <p className="order-meta">
+                                  {order.items.length} item{order.items.length > 1 ? "s" : ""}
+                                </p>
+                                <p className="order-date">
+                                  {new Date(order.createdAt).toLocaleDateString("en-US", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  })}
+                                </p>
+                              </div>
+                              <div className="order-status">
+                                <span
+                                  className={`status-badge ${this.getStatusClass(
+                                    order.orderStatus
+                                  )}`}
+                                >
+                                  {order.orderStatus?.charAt(0).toUpperCase() +
+                                    order.orderStatus?.slice(1)}
+                                </span>
+                              </div>
+                              <div className="order-price">
+                                <p>Rs. {order.totalAmount?.toLocaleString()}</p>
+                                {order.paymentStatus === 'pending' && (
+                                  <span style={{ color: '#d32f2f', fontSize: '12px', fontWeight: 'bold' }}>Pay Now &rarr;</span>
+                                )}
+                              </div>
                             </div>
-                            <div className="order-info">
-                              <h4>{order.name}</h4>
-                              <p className="order-meta">{order.size}</p>
-                              <p className="order-date">{order.date}</p>
-                            </div>
-                            <div className="order-status">
-                              <span className={`status-badge ${order.status.toLowerCase()}`}>
-                                {order.status}
-                              </span>
-                            </div>
-                            <div className="order-price">
-                              <p>{order.price}</p>
-                              <a href="#" className="track-link">
-                                Track Item
-                              </a>
-                            </div>
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
                     </div>
 
-                    {/* Digital Wardrobe */}
-                    <div className="content-section wardrobe-section">
+                    {/* RECENT SUPPORT MESSAGES */}
+                    <div className="content-section" style={{ marginTop: "24px" }}>
                       <div className="section-header">
-                        <h2>Digital Wardrobe</h2>
+                        <h2>Recent Support Inquiries</h2>
                       </div>
-
-                      {digitalWardrobe.length > 0 ? (
-                        <div className="wardrobe-container">
-                          {digitalWardrobe.map((item) => (
-                            <div key={item.id} className="wardrobe-item">
-                              {item.image ? (
-                                <img src={item.image} alt={item.name} />
-                              ) : (
-                                <div className="wardrobe-placeholder"></div>
-                              )}
-                              <div className="wardrobe-label">{item.type}</div>
-                              <p>{item.name}</p>
+                      <div className="support-list">
+                        {this.state.messagesLoading ? (
+                          <p className="empty-state">Loading messages...</p>
+                        ) : this.state.messages.length === 0 ? (
+                          <p className="empty-state">No support requests sent yet.</p>
+                        ) : (
+                          this.state.messages.slice(0, 3).map((msg) => (
+                            <div key={msg._id} className="order-card" style={{ padding: '15px' }}>
+                              <div className="order-info" style={{ marginLeft: 0 }}>
+                                <h4>{msg.subject}</h4>
+                                <p className="order-meta">{msg.message.substring(0, 60)}...</p>
+                                <p className="order-date" style={{ marginTop: '5px' }}>
+                                  {new Date(msg.createdAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="order-status" style={{ marginLeft: 'auto' }}>
+                                <span className={`status-badge ${msg.status === 'read' ? 'delivered' : 'pending'}`}>
+                                  {msg.status === 'unread' ? 'Sent' : 'Read by Admin'}
+                                </span>
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="empty-state">Your digital wardrobe is empty</p>
-                      )}
+                          ))
+                        )}
+                      </div>
                     </div>
+
                   </div>
 
-                  {/* Last Viewed */}
-                  <div className="last-viewed-section">
+                  {/* Account Info Card */}
+                  <div className="content-section" style={{ marginTop: "24px" }}>
                     <div className="section-header">
-                      <h2>Last Viewed</h2>
+                      <h2>Account Information</h2>
                     </div>
-                    <div className="last-viewed-item">
-                      <div className="viewed-image">
-                        <div className="image-placeholder-large"></div>
+                    <div className="account-info-grid">
+                      <div className="info-item">
+                        <span className="info-label">Full Name</span>
+                        <span className="info-value">{user.name}</span>
                       </div>
-                      <div className="viewed-info">
-                        <p className="viewed-label">Last Viewed</p>
-                        <h3>Chrome Bag V.02</h3>
-                        <button className="btn-explore">Explore Item →</button>
+                      <div className="info-item">
+                        <span className="info-label">Email Address</span>
+                        <span className="info-value">{user.email}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Phone</span>
+                        <span className="info-value">{user.phone || "Not set"}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Location</span>
+                        <span className="info-value">{user.location || "Not set"}</span>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Orders Tab */}
+              {/* ===================== ORDERS TAB ===================== */}
               {activeTab === "orders" && (
                 <div className="tab-content orders-tab">
                   <h2>My Orders</h2>
                   <div className="orders-list">
-                    {recentOrders.map((order) => (
-                      <div key={order.id} className="order-card">
-                        <div className="order-image">
-                          {order.image ? (
-                            <img src={order.image} alt={order.name} />
-                          ) : (
-                            <div className="image-placeholder"></div>
-                          )}
-                        </div>
-                        <div className="order-info">
-                          <h4>{order.name}</h4>
-                          <p className="order-meta">{order.size}</p>
-                          <p className="order-date">{order.date}</p>
-                        </div>
-                        <div className="order-status">
-                          <span className={`status-badge ${order.status.toLowerCase()}`}>
-                            {order.status}
-                          </span>
-                        </div>
-                        <div className="order-price">
-                          <p>{order.price}</p>
-                          <a href="#" className="track-link">
-                            Track Item
-                          </a>
-                        </div>
+                    {ordersLoading ? (
+                      <p className="empty-state">Loading orders...</p>
+                    ) : orders.length === 0 ? (
+                      <div className="empty-state-container">
+                        <span className="empty-icon">📦</span>
+                        <p className="empty-state">
+                          No orders yet. Start shopping to see your orders here!
+                        </p>
+                        <Link to="/home" className="btn-primary" style={{ marginTop: "16px", display: "inline-block", textDecoration: "none" }}>
+                          Browse Products
+                        </Link>
                       </div>
-                    ))}
+                    ) : (
+                      orders.map((order) => (
+                        <React.Fragment key={order._id}>
+                          <div
+                            className="order-card"
+                            onClick={() => {
+                              if (order.paymentStatus === 'pending') {
+                                const cartItems = order.items.map(item => ({
+                                  id: item.productId._id || item.productId,
+                                  name: item.productId.name || "Product",
+                                  price: item.price.toString(),
+                                  image: this.getImageUrl(item.productId),
+                                  qty: item.quantity
+                                }));
+                                localStorage.setItem("cart", JSON.stringify(cartItems));
+                                window.location.href = "/checkout/shipping";
+                              }
+                            }}
+                            style={order.paymentStatus === 'pending' ? { cursor: 'pointer', border: '1px solid #e65100' } : {}}
+                          >
+                            <div className="order-image">
+                              <img
+                                src={this.getImageUrl(order.items[0]?.productId)}
+                                alt="Order Item"
+                                onError={(e) => { e.target.src = 'https://via.placeholder.com/100'; }}
+                              />
+                            </div>
+                            <div className="order-info">
+                              <h4>
+                                {order.items[0]?.productId?.name || "Order Item"}
+                                {order.items.length > 1 && ` + ${order.items.length - 1} more`}
+                              </h4>
+                              <p className="order-meta">
+                                {order.items.length} item{order.items.length > 1 ? "s" : ""}
+                              </p>
+                              <p className="order-date">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="order-status">
+                              <span className={`status-badge ${this.getStatusClass(order.orderStatus)}`}>
+                                {order.orderStatus?.charAt(0).toUpperCase() + order.orderStatus?.slice(1)}
+                              </span>
+                            </div>
+                            <div className="order-price">
+                              <p>Rs. {order.totalAmount?.toLocaleString()}</p>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                                <span className="payment-status">
+                                  {order.paymentStatus === "completed" ? "✅ Paid" : (
+                                    <span style={{ color: '#d32f2f', fontWeight: 'bold' }}>Pay Now &rarr;</span>
+                                  )}
+                                </span>
+                                {order.orderStatus === 'delivered' && (
+                                  <button 
+                                    className="btn-review-small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // Default to the first product in the order for the quick review button
+                                      this.handleOpenReviewModal(order.items[0]?.productId, order);
+                                    }}
+                                    style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: '1px solid #111827', background: '#111827', color: 'white', cursor: 'pointer' }}
+                                  >
+                                    Write Review
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Show additional items if any, but styled inside the same container scope if needed */}
+                          {order.items.length > 1 && (
+                            <div className="order-extra-items" style={{ padding: '0 20px 15px', marginTop: '-10px', fontSize: '13px', color: '#666' }}>
+                                <span>Includes: {order.items.slice(1).map(item => item.productId?.name).join(", ")}</span>
+                            </div>
+                          )}
+                        </React.Fragment>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* Wishlist Tab */}
+              {/* ===================== WISHLIST TAB ===================== */}
               {activeTab === "wishlist" && (
                 <div className="tab-content wishlist-tab">
                   <h2>My Wishlist</h2>
-                  <div className="wishlist-grid">
-                    {wishlist.map((item) => (
-                      <div key={item.id} className="wishlist-card">
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} />
-                        ) : (
-                          <div className="image-placeholder-wishlist"></div>
-                        )}
-                        <div className="wishlist-info">
-                          <h4>{item.name}</h4>
-                          <p className="wishlist-price">{item.price}</p>
-                          <button className="btn-small">Add to Cart</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  {this.state.wishlistItems.length === 0 ? (
+                    <div className="empty-state-container">
+                      <span className="empty-icon">💝</span>
+                      <p className="empty-state">Your wishlist is empty</p>
+                      <Link to="/home" className="btn-primary" style={{ marginTop: "16px", display: "inline-block", textDecoration: "none" }}>
+                        Browse Products
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="wishlist-grid-profile">
+                      {this.state.wishlistItems.map((product) => {
+                        const mainImage = product.images?.[0] || product.image;
+                        const imageUrl = (mainImage && typeof mainImage === 'string' && mainImage.startsWith("http"))
+                          ? mainImage
+                          : (mainImage ? `http://localhost:5000/uploads/${mainImage}` : "https://via.placeholder.com/200");
+                        return (
+                          <div key={product._id} className="wishlist-card-profile">
+                            <img src={imageUrl} alt={product.name} />
+                            <h4>{product.name}</h4>
+                            <p className="wishlist-price">Rs. {product.price?.toLocaleString() || "0"}</p>
+                            <button 
+                              className="btn-primary" 
+                              style={{ width: "100%", marginTop: "10px" }}
+                              onClick={() => {
+                                const formattedProduct = {
+                                  ...product,
+                                  id: product._id,
+                                  image: imageUrl,
+                                  images: product.images?.map(img => img.startsWith('http') ? img : `http://localhost:5000/uploads/${img}`) || []
+                                };
+                                this.props.navigate(`/product/${product._id}`, {
+                                  state: { product: formattedProduct },
+                                });
+                              }}
+                            >
+                              View Product
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Reviews Tab */}
+              {/* ===================== REVIEWS TAB ===================== */}
               {activeTab === "reviews" && (
                 <div className="tab-content reviews-tab">
                   <h2>My Reviews</h2>
-                  <div className="reviews-container">
-                    <p className="empty-state">No reviews yet. Start shopping to leave your first review!</p>
-                  </div>
+                  {this.state.reviewsLoading ? (
+                    <p className="empty-state">Loading reviews...</p>
+                  ) : this.state.userReviews.length === 0 ? (
+                    <div className="empty-state-container">
+                      <span className="empty-icon">⭐</span>
+                      <p className="empty-state">
+                        No reviews yet. Start shopping to leave your first review!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="reviews-list-profile">
+                      {this.state.userReviews.map((review, idx) => (
+                        <div key={idx} className="review-card-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                          <img 
+                            src={this.getImageUrl(review.product)} 
+                            alt={review.product?.name} 
+                            style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} 
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div className="review-header">
+                              <h4>{review.product?.name}</h4>
+                              <span className="review-rating">{"★".repeat(review.rating || 5)}{"☆".repeat(5 - (review.rating || 5))}</span>
+                            </div>
+                            <p className="review-comment">{review.comment || "No comment"}</p>
+                            <p className="review-date">
+                              {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ""}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Settings Tab */}
+              {/* ===================== SETTINGS TAB ===================== */}
               {activeTab === "settings" && (
                 <div className="tab-content settings-tab">
                   <h2>Profile Settings</h2>
-                  <form className="settings-form">
-                    <div className="form-group">
-                      <label>Full Name</label>
-                      <input type="text" value={user.name} readOnly />
+
+                  {/* Success / Error Messages */}
+                  {profileMsg && (
+                    <div className="alert alert-success">{profileMsg}</div>
+                  )}
+                  {profileError && (
+                    <div className="alert alert-error">{profileError}</div>
+                  )}
+
+                  <form
+                    className="settings-form"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      this.handleUpdateProfile();
+                    }}
+                  >
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Full Name</label>
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) =>
+                            this.setState({ editName: e.target.value })
+                          }
+                          placeholder="Your full name"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Email Address</label>
+                        <input
+                          type="email"
+                          value={editEmail}
+                          onChange={(e) =>
+                            this.setState({ editEmail: e.target.value })
+                          }
+                          placeholder="Your email"
+                        />
+                      </div>
                     </div>
-                    <div className="form-group">
-                      <label>Email</label>
-                      <input type="email" value="isabella@example.com" readOnly />
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Phone Number</label>
+                        <input
+                          type="tel"
+                          value={editPhone}
+                          onChange={(e) =>
+                            this.setState({ editPhone: e.target.value })
+                          }
+                          placeholder="Your phone number"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Location</label>
+                        <input
+                          type="text"
+                          value={editLocation}
+                          onChange={(e) =>
+                            this.setState({ editLocation: e.target.value })
+                          }
+                          placeholder="City, Country"
+                        />
+                      </div>
                     </div>
-                    <div className="form-group">
-                      <label>Location</label>
-                      <input type="text" value={user.location} readOnly />
-                    </div>
+
                     <div className="form-group">
                       <label>Bio</label>
-                      <textarea value={user.bio} readOnly></textarea>
+                      <textarea
+                        value={editBio}
+                        onChange={(e) =>
+                          this.setState({ editBio: e.target.value })
+                        }
+                        placeholder="Tell us a little about yourself..."
+                        rows={3}
+                      ></textarea>
                     </div>
-                    <button type="button" className="btn-primary">
-                      Update Settings
+
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                      disabled={savingProfile}
+                    >
+                      {savingProfile ? "Saving..." : "Update Profile"}
                     </button>
                   </form>
                 </div>
               )}
 
-              {/* Payment Methods Tab */}
-              {activeTab === "payment" && (
-                <div className="tab-content payment-tab">
-                  <h2>Payment Methods</h2>
-                  <div className="payment-methods">
-                    <div className="payment-card">
-                      <h4>💳 Credit Card</h4>
-                      <p>****1234</p>
-                      <p className="exp-date">Expires: 12/25</p>
+              {/* ===================== CHANGE PASSWORD TAB ===================== */}
+              {activeTab === "password" && (
+                <div className="tab-content settings-tab">
+                  <h2>Change Password</h2>
+
+                  {/* Success / Error Messages */}
+                  {passwordMsg && (
+                    <div className="alert alert-success">{passwordMsg}</div>
+                  )}
+                  {passwordError && (
+                    <div className="alert alert-error">{passwordError}</div>
+                  )}
+
+                  <form
+                    className="settings-form"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      this.handleChangePassword();
+                    }}
+                  >
+                    <div className="form-group">
+                      <label>Current Password</label>
+                      <input
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) =>
+                          this.setState({ currentPassword: e.target.value })
+                        }
+                        placeholder="••••••••"
+                      />
                     </div>
-                  </div>
-                  <button className="btn-primary" style={{ marginTop: "24px" }}>
-                    Add Payment Method
-                  </button>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>New Password</label>
+                        <input
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) =>
+                            this.setState({ newPassword: e.target.value })
+                          }
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Confirm New Password</label>
+                        <input
+                          type="password"
+                          value={confirmNewPassword}
+                          onChange={(e) =>
+                            this.setState({ confirmNewPassword: e.target.value })
+                          }
+                          placeholder="••••••••"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                      disabled={savingPassword}
+                    >
+                      {savingPassword ? "Changing..." : "Change Password"}
+                    </button>
+                  </form>
                 </div>
               )}
             </div>
           </section>
         </main>
-        <StoreFooter />
+
+        {/* REVIEW MODAL */}
+        {this.state.showReviewModal && (
+            <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                <div className="modal-content" style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px' }}>
+                    <h3>Review for {this.state.selectedProductForReview?.name}</h3>
+                    <div style={{ margin: '20px 0' }}>
+                        <label style={{ display: 'block', marginBottom: '10px' }}>Rating:</label>
+                        <div style={{ fontSize: '24px', color: '#fbbf24', cursor: 'pointer' }}>
+                            {[1, 2, 3, 4, 5].map(star => (
+                                <span key={star} onClick={() => this.setState({ reviewRating: star })}>
+                                    {star <= this.state.reviewRating ? "★" : "☆"}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={{ display: 'block', marginBottom: '10px' }}>Your Feedback:</label>
+                        <textarea 
+                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '100px' }}
+                            placeholder="How was the product?"
+                            value={this.state.reviewComment}
+                            onChange={(e) => this.setState({ reviewComment: e.target.value })}
+                        ></textarea>
+                    </div>
+
+                    {this.state.reviewError && <p style={{ color: 'red', fontSize: '14px' }}>{this.state.reviewError}</p>}
+                    {this.state.reviewMsg && <p style={{ color: 'green', fontSize: '14px' }}>{this.state.reviewMsg}</p>}
+
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                        <button onClick={this.handleCloseReviewModal} style={{ padding: '8px 20px', borderRadius: '6px', border: '1px solid #ddd', background: 'white' }}>Cancel</button>
+                        <button onClick={this.submitReview} disabled={this.state.submittingReview} style={{ padding: '8px 20px', borderRadius: '6px', border: 'none', background: '#111827', color: 'white' }}>
+                            {this.state.submittingReview ? "Submitting..." : "Post Review"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+        <ProductFooter />
       </>
     );
   }
 }
 
-export default UserProfile;
+export default withRouter(UserProfile);

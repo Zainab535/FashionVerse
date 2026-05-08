@@ -2,12 +2,29 @@ import React, { Component } from "react";
 
 class Footer extends Component {
   render() {
+    const brands = [
+      "MINIMEHR", "RAHMEER", "XENIQUE",
+      "ZARQ", "KINGSWARD", "AURA", "LUMINA",
+      "PRISM", "GULNAAR", "OPULENCE"
+    ];
+
+    // Create the scrolling content
+    const marqueeContent = (
+      <>
+        {brands.map((brand, index) => (
+          <span key={index}>{brand}</span>
+        ))}
+      </>
+    );
+
     return (
       <footer className="footer">
-        <div className="socials">
-          <span>REALITY  </span>
-          <span>OUTFITTERS  </span>
-          <span>SAPPHIRE  </span>
+        <div className="footer-marquee-container">
+          <div className="footer-marquee-track">
+            {marqueeContent}
+            {marqueeContent} {/* Duplicate for seamless scroll */}
+            {marqueeContent} {/* Triplicate for wide screens if needed */}
+          </div>
         </div>
 
         <div className="location">

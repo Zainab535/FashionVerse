@@ -1,84 +1,153 @@
 import React, { Component } from "react";
 import { withRouter } from "../utils/withRouter";
-
-import coat from "../assets/images/product-1-wool-coat.jpg";
-import dress from "../assets/images/product-2-silk-dress.jpg";
-import bag from "../assets/images/product-3-leather-tote.jpg";
-import shoes from "../assets/images/product-4-puffer-jacket.jpg";
+import api from "../api";
+import { WishlistContext } from "../context/WishlistContext";
+import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 
 class ProductGrid extends Component {
+  static contextType = WishlistContext;
+
   constructor(props) {
     super(props);
-
-    this.products = [
-  {
-    id: 1,
-    brand: "Maison Margiela",
-    name: "Oversized Wool Coat",
-    price: "$1,250",
-    image: coat,                 // ✅ MAIN IMAGE
-    images: [coat, coat, coat, coat], // ✅ GALLERY
-  },
-  {
-    id: 2,
-    brand: "Rick Owens",
-    name: "Asymmetric Silk Dress",
-    price: "$890",
-    image: dress,
-    images: [dress, dress, dress, dress],
-  },
-  {
-    id: 3,
-    brand: "Rick Owens",
-    name: "Asymmetric Tote Bag",
-    price: "$799",
-    image: bag,
-    images: [bag, bag, bag, bag],
-  },
-  {
-    id: 4,
-    brand: "Rick Owens",
-    name: "Luxury Shoes",
-    price: "$899",
-    image: shoes,
-    images: [shoes, shoes, shoes, shoes],
-  },
-];
+    this.state = {
+      products: [],
+      loading: true,
+      error: null
+    };
+    this.scrollRef = React.createRef();
+    this.autoScrollInterval = null;
   }
 
- handleProductClick = (product) => {
-  this.props.navigate(`/product/${product.id}`, {
-    state: { product },
-  });
-};
+  componentDidMount() {
+    this.fetchNewArrivals();
 
+    // Auto-scroll every 4 seconds
+    this.autoScrollInterval = setInterval(() => {
+      this.autoScroll();
+    }, 4000);
+  }
+
+  componentWillUnmount() {
+    if (this.autoScrollInterval) {
+      clearInterval(this.autoScrollInterval);
+    }
+  }
+
+  autoScroll = () => {
+    const container = this.scrollRef.current;
+    if (container) {
+      const scrollAmount = 300;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+
+      if (container.scrollLeft >= maxScroll - 10) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    }
+  };
+
+  fetchNewArrivals = async () => {
+    try {
+      // Fetch products from last 7 days, max 7
+      const res = await api.get("/products?isNewArrival=true&limit=7");
+      this.setState({
+        products: res.data.products || [],
+        loading: false
+      });
+    } catch (err) {
+      console.error("Failed to fetch arrivals:", err);
+      this.setState({ error: "Failed to load products", loading: false });
+    }
+  };
+
+
+
+  handleProductClick = (product) => {
+    const formattedProduct = {
+      ...product,
+      id: product._id,
+      image: product.images?.[0] ? `http://localhost:5000/uploads/${product.images[0]}` : "",
+      images: product.images?.map(img => `http://localhost:5000/uploads/${img}`) || []
+    };
+
+    this.props.navigate(`/product/${product._id}`, {
+      state: {
+        product: formattedProduct,
+        from: "new-arrivals"
+      },
+    });
+  };
 
   render() {
+    const { products, loading, error } = this.state;
+
+    if (loading) return null;
+    if (products.length === 0) return null; // Don't show section if no new arrivals
+
     return (
       <section className="product-section">
         <h2>New Arrivals</h2>
 
-        <div className="product-grid">
-          {this.products.map((p) => (
-  <div
-    className="product-card"
-    key={p.id}
-    onClick={() => this.handleProductClick(p)}
-  >
-    <img src={p.image} alt={p.name} />
-    <div className="product-card-content">
-      <span>{p.brand}</span>
-      <h4>{p.name}</h4>
-      <p>{p.price}</p>
-    </div>
-  </div>
-))}
+        <div className="brand-container" style={{ position: 'relative' }}>
+          <div
+            className="brand-scroll product-grid"
+            ref={this.scrollRef}
+            style={{
+              display: 'flex',
+              overflowX: 'auto',
+              scrollBehavior: 'smooth',
+              gap: '20px',
+              padding: '10px 0',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+          >
+            <style>{`.brand-scroll::-webkit-scrollbar { display: none; }`}</style>
 
+            {products.map((p) => {
+              const isFav = this.context.isInWishlist(p._id);
+              return (
+                <div
+                  className="product-card"
+                  key={p._id}
+                  onClick={() => this.handleProductClick(p)}
+                  style={{ flex: '0 0 auto', width: '280px', position: 'relative' }}
+                >
+                  <img
+                    src={p.images?.[0] ? `http://localhost:5000/uploads/${p.images[0]}` : "https://via.placeholder.com/300"}
+                    alt={p.name}
+                    style={{ width: '100%', height: '350px', objectFit: 'cover', objectPosition: 'top', borderRadius: '8px' }}
+                  />
+                  <div className="product-card-content">
+                    <span>{typeof p.brand === 'object' ? p.brand?.name : "FashionVerse"}</span>
+                    <h4>{p.name}</h4>
+                    <div className="price-wishlist-row">
+                      <p>Rs. {p.price?.toLocaleString()}</p>
+                      <div className={`wishlist-icon-inline ${isFav ? 'active' : ''}`} onClick={(e) => {
+                        e.stopPropagation();
+                        const token = localStorage.getItem("token");
+                        const role = localStorage.getItem("role");
+
+                        if (!token || role !== 'customer') {
+                          this.props.navigate("/login?redirectTo=" + encodeURIComponent(window.location.pathname));
+                          return;
+                        }
+
+                        this.context.toggleWishlist(p);
+                      }}>
+                        {isFav ? <AiFillHeart color="#e31b23" /> : <AiOutlineHeart />}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
     );
   }
 }
 
-/* 🔗 withRouter injects navigate into props */
 export default withRouter(ProductGrid);

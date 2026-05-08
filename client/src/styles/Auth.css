@@ -35,9 +35,8 @@
 }
 
 .login-logo-img {
-  width: 160px;
+  width: 220px;
   height: auto;
-  filter: brightness(0) invert(1);
 }
 
 .login-model-image {
@@ -115,8 +114,8 @@
 
 .login-forgot {
   font-size: 12px;
-  color: #1143b8;
-  text-decoration: none;
+  color: #1a1a1a;
+  text-decoration: underline;
   font-weight: 600;
 }
 
@@ -128,6 +127,7 @@
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.3s ease;
+  color: #1a1a1a;
 }
 
 .login-input:focus {
@@ -137,11 +137,35 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
+.password-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.password-toggle-btn:hover {
+  color: #1a1a1a;
+}
+
 .login-button {
   width: 100%;
   padding: 16px;
-  background: #c19130;
-  /* Golden theme matched with button in screenshot */
+  background: #1a1a1a;
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -153,7 +177,7 @@
 }
 
 .login-button:hover {
-  background: #a67c28;
+  background: #333;
   transform: translateY(-2px);
 }
 
@@ -165,9 +189,9 @@
 }
 
 .login-signup-link {
-  color: #1143b8;
+  color: #1a1a1a;
   font-weight: 700;
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 /* RESPONSIVE */

@@ -69,7 +69,7 @@ class QuickAction extends Component {
 
 class TaskItem extends Component {
   render() {
-    const { icon, iconColor, title, description, actionText } = this.props;
+    const { icon, iconColor, title, description, actionText, onAction } = this.props;
     return (
       <div className="task-item">
         <div className="task-info">
@@ -81,7 +81,7 @@ class TaskItem extends Component {
             <p>{description}</p>
           </div>
         </div>
-        <button className="task-action">{actionText}</button>
+        <button className="task-action" onClick={onAction}>{actionText}</button>
       </div>
     );
   }
@@ -146,14 +146,16 @@ class AdminHome extends Component {
             iconColor: "gray",
             title: "Brand Verifications",
             description: `${pendingBrands} new requests waiting`,
-            actionText: "Review"
+            actionText: "Review",
+            onAction: () => window.location.href = "/admin/verifications"
           },
           {
             icon: "icon-alert-danger",
             iconColor: "gray",
             title: "Reported Items",
             description: "5 items flagged by users",
-            actionText: "Review"
+            actionText: "Review",
+            onAction: () => window.location.href = "/admin/products"
           }
         ]
       });
@@ -193,7 +195,7 @@ class AdminHome extends Component {
           ))}
         </div>
 
-        {/* Two Column Layout */}
+        {/* Two Column Layout (Recent Activity Left, Tasks Right) */}
         <div className="two-column-layout">
           {/* Recent Activity */}
           <div className="activity-card">
@@ -218,18 +220,15 @@ class AdminHome extends Component {
             </table>
           </div>
 
-          {/* Right Column */}
-          <div>
-            {/* Pending Tasks */}
-            <div className="tasks-card">
-              <div className="card-header">
-                <h2 className="card-title">Pending Tasks</h2>
-              </div>
-
-              {pendingTasks.map((task, index) => (
-                <TaskItem key={index} {...task} />
-              ))}
+          {/* Pending Tasks */}
+          <div className="tasks-card">
+            <div className="card-header">
+              <h2 className="card-title">Pending Tasks</h2>
             </div>
+
+            {pendingTasks.map((task, index) => (
+              <TaskItem key={index} {...task} />
+            ))}
           </div>
         </div>
       </div>

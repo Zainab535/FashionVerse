@@ -1,0 +1,9 @@
+﻿
+Protocol tcp Port Exclusion Ranges
+
+Start Port    End Port      
+----------    --------      
+      5357        5357      
+
+* - Administered port exclusions.
+

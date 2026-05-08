@@ -1,8 +1,64 @@
 import React, { Component } from "react";
 import "../../styles/brands/BrandDashboard.css";
+import api from "../../api";
 
 class Inventory extends Component {
+    state = {
+        products: [],
+        loading: true,
+        error: null,
+        activeTab: "All Products"
+    };
+
+    async componentDidMount() {
+        this.fetchProducts();
+    }
+
+    fetchProducts = async () => {
+        try {
+            const res = await api.get("/brand/products");
+            this.setState({ products: res.data, loading: false });
+        } catch (err) {
+            console.error("Error fetching products:", err);
+            this.setState({ error: "Failed to load inventory", loading: false });
+        }
+    };
+
+    handleDeleteProduct = async (productId) => {
+        if (window.confirm("Are you sure you want to delete this product from your inventory and the database?")) {
+            try {
+                await api.delete(`/brand/products/${productId}`);
+                this.setState({
+                    products: this.state.products.filter(p => p._id !== productId)
+                });
+                alert("Product deleted successfully");
+            } catch (err) {
+                console.error("Error deleting product:", err);
+                alert(err.response?.data?.message || "Failed to delete product");
+            }
+        }
+    };
+
+    getFilteredProducts = () => {
+        const { products, activeTab } = this.state;
+        if (activeTab === "All Products") return products;
+        return products.filter(p => p.category?.name === activeTab);
+    };
+
     render() {
+        const { products, loading, error, activeTab } = this.state;
+
+        if (loading) return <div className="dash-wrapper"><p>Loading Inventory...</p></div>;
+        if (error) return <div className="dash-wrapper"><p style={{ color: 'red' }}>{error}</p></div>;
+
+        // Calculate Stats
+        const totalProducts = products.length;
+        const lowStockCount = products.filter(p => p.stock > 0 && p.stock < 10).length;
+        const outOfStockCount = products.filter(p => !p.stock || p.stock === 0).length;
+        const categories = [...new Set(products.map(p => p.category?.name).filter(Boolean))];
+
+        const filteredProducts = this.getFilteredProducts();
+
         return (
             <div className="dash-wrapper">
                 {/* STATS ROW */}
@@ -11,7 +67,7 @@ class Inventory extends Component {
                         <div className="stat-top">
                             <span className="stat-label">Total Products</span>
                         </div>
-                        <h2 className="stat-value">842</h2>
+                        <h2 className="stat-value">{totalProducts}</h2>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <span style={{ fontSize: '14px' }}>📁</span>
                             <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Active Catalog</span>
@@ -22,7 +78,7 @@ class Inventory extends Component {
                         <div className="stat-top">
                             <span className="stat-label">Low Stock</span>
                         </div>
-                        <h2 className="stat-value">18</h2>
+                        <h2 className="stat-value">{lowStockCount}</h2>
                         <span className="pill warning">⚠ Action Required</span>
                     </div>
 
@@ -30,7 +86,7 @@ class Inventory extends Component {
                         <div className="stat-top">
                             <span className="stat-label">Out of Stock</span>
                         </div>
-                        <h2 className="stat-value">4</h2>
+                        <h2 className="stat-value">{outOfStockCount}</h2>
                         <span className="pill urgent">● Critical</span>
                     </div>
 
@@ -38,7 +94,7 @@ class Inventory extends Component {
                         <div className="stat-top">
                             <span className="stat-label">Categories</span>
                         </div>
-                        <h2 className="stat-value">12</h2>
+                        <h2 className="stat-value">{categories.length}</h2>
                         <span className="pill info">Diverse Range</span>
                     </div>
                 </div>
@@ -46,15 +102,21 @@ class Inventory extends Component {
                 {/* FILTER BAR */}
                 <div className="filter-bar">
                     <div className="tabs-group">
-                        <button className="pill-tab active">All Products</button>
-                        <button className="pill-tab">Wearables</button>
-                        <button className="pill-tab">Accessories</button>
-                        <button className="pill-tab">Footwear</button>
-                    </div>
-                    <div className="secondary-actions">
-                        <span style={{ fontSize: '13px', color: '#64748b', cursor: 'pointer' }}>
-                            <span style={{ marginRight: '5px' }}>≡</span> Advanced Filters
-                        </span>
+                        <button
+                            className={`pill-tab ${activeTab === "All Products" ? "active" : ""}`}
+                            onClick={() => this.setState({ activeTab: "All Products" })}
+                        >
+                            All Products
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                className={`pill-tab ${activeTab === cat ? "active" : ""}`}
+                                onClick={() => this.setState({ activeTab: cat })}
+                            >
+                                {cat}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -70,52 +132,61 @@ class Inventory extends Component {
                         <div style={{ textAlign: 'right' }}>Actions</div>
                     </div>
 
-                    {/* INVENTORY ITEMS */}
-                    {[
-                        { id: 1, sku: 'FV-CRG1-SLV', name: 'CyberRunner Gen.1 (Silver)', cat: 'Footwear', stock: 42, stockType: 'high', price: '$240.00' },
-                        { id: 2, sku: 'FV-NVPH-001', name: 'Neon-Void Puffer [Holo]', cat: 'Wearables', stock: 8, stockType: 'low', price: '$1,200.00' },
-                        { id: 3, sku: 'FV-POGV-400', name: 'Prism-Optic Glasses v4', cat: 'Accessories', stock: 124, stockType: 'high', price: '$85.00' },
-                        { id: 4, sku: 'FV-LSG2-WHT', name: 'Liquid Silk Gown #02', cat: 'Wearables', stock: 0, stockType: 'none', price: '$3,500.00' },
-                    ].map((item) => (
-                        <div className="list-row inventory-list-grid" key={item.id}>
-                            <div className="product-img-v"></div>
-                            <div className="sku-cell" style={{ fontWeight: 600, color: '#334155', fontSize: '12px' }}>
-                                {item.sku}
-                            </div>
-                            <div className="product-info-v">
-                                <span className="product-name-v">{item.name}</span>
-                                <span className="product-cat-v">3D Digital Ownership</span>
-                            </div>
-                            <div>
-                                <span className="cat-badge-v">{item.cat}</span>
-                            </div>
-                            <div className="stock-lvl-cell">
-                                <span className="stock-num">{item.stock}</span>
-                                <div className="stock-bar-v">
-                                    <div className={`fill ${item.stockType}`} style={{ width: item.stock > 0 ? '70%' : '0%' }}></div>
+                    {filteredProducts.length > 0 ? (
+                        filteredProducts.map((item) => (
+                            <div className="list-row inventory-list-grid" key={item._id}>
+                                <div className="product-img-v">
+                                    {item.images?.[0] && (
+                                        <img
+                                            src={`http://localhost:5000/uploads/${item.images[0]}`}
+                                            alt={item.name}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }}
+                                        />
+                                    )}
+                                </div>
+                                <div className="sku-cell" style={{ fontWeight: 600, color: '#334155', fontSize: '12px' }}>
+                                    {item.sku || item._id.slice(-8).toUpperCase()}
+                                </div>
+                                <div className="product-info-v">
+                                    <span className="product-name-v">{item.name}</span>
+                                    <span className="product-cat-v">3D Digital Ownership</span>
+                                </div>
+                                <div>
+                                    <span className="cat-badge-v">{item.category?.name || "Uncategorized"}</span>
+                                </div>
+                                <div className="stock-lvl-cell">
+                                    <span className="stock-num">{item.stock || 0}</span>
+                                    <div className="stock-bar-v">
+                                        <div
+                                            className={`fill ${item.stock > 20 ? 'high' : item.stock > 0 ? 'low' : 'none'}`}
+                                            style={{ width: item.stock > 0 ? (item.stock > 50 ? '100%' : '50%') : '0%' }}
+                                        ></div>
+                                    </div>
+                                </div>
+                                <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                                    Rs. {item.price?.toLocaleString()}
+                                </div>
+                                <div className="action-btns-v">
+                                    <button
+                                        className="icon-btn-v"
+                                        title="Edit Product"
+                                        onClick={() => this.props.onEditProduct(item)}
+                                    >✎</button>
+                                    <button
+                                        className="icon-btn-v"
+                                        title="Delete Product"
+                                        onClick={() => this.handleDeleteProduct(item._id)}
+                                    >
+                                        🗑
+                                    </button>
                                 </div>
                             </div>
-                            <div style={{ fontWeight: 700, color: '#0f172a' }}>
-                                {item.price}
-                            </div>
-                            <div className="action-btns-v">
-                                <button className="icon-btn-v">✎</button>
-                                <button className="icon-btn-v">🗑</button>
-                            </div>
+                        ))
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                            No products found in this category.
                         </div>
-                    ))}
-                </div>
-
-                {/* PAGINATION */}
-                <div className="pagination-v">
-                    <span className="pagination-info-v">Showing 1-4 of 842 products</span>
-                    <div className="page-controls-v">
-                        <button className="page-btn-v">‹</button>
-                        <button className="page-btn-v active">1</button>
-                        <button className="page-btn-v">2</button>
-                        <button className="page-btn-v">3</button>
-                        <button className="page-btn-v">›</button>
-                    </div>
+                    )}
                 </div>
             </div>
         );

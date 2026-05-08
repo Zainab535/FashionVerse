@@ -3,6 +3,7 @@ import Brand from "../models/Brand.js";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import Category from "../models/Category.js";
+import { sendBrandApprovalEmail, sendBrandRejectionEmail } from "../utils/emailService.js";
 import multer from "multer";
 import path from "path";
 
@@ -17,7 +18,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
@@ -119,7 +120,9 @@ export const deleteUser = async (req, res) => {
 export const getAdminStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
-    const totalBrandOwners = await User.countDocuments({ role: "brandOwner" });
+    const totalBrandOwners = await User.countDocuments({
+      role: { $in: ["brand", "brandowner"] }
+    });
 
     const totalBrands = await Brand.countDocuments();
     const pendingBrands = await Brand.countDocuments({ isApproved: false });
@@ -130,17 +133,51 @@ export const getAdminStats = async (req, res) => {
     // Added: Get Total Orders
     const totalOrders = await Order.countDocuments();
 
-    // Added: Get Recent Activities (last 5 users)
-    const recentUsers = await User.find().sort({ createdAt: -1 }).limit(5);
+    // Added: Get Recent Activities (Real-time data from multiple sources)
+    const [recentUsers, recentOrders, recentBrands] = await Promise.all([
+      User.find().sort({ createdAt: -1 }).limit(5),
+      Order.find().populate('userId', 'name').sort({ createdAt: -1 }).limit(5),
+      Brand.find().sort({ createdAt: -1 }).limit(5)
+    ]);
 
-    const recentActivities = recentUsers.map(user => ({
-      icon: "icon-users",
-      iconColor: "blue",
-      title: "New User Registration",
-      description: `${user.name} joined the platform`,
-      status: "Completed",
-      time: new Date(user.createdAt).toLocaleDateString()
-    }));
+    // Combine and format activities
+    let allActivities = [
+      ...recentUsers.map(user => ({
+        type: 'user',
+        icon: "icon-users",
+        iconColor: "blue",
+        title: "New User Registration",
+        description: `${user.name} joined the platform`,
+        status: "Completed",
+        timestamp: user.createdAt,
+        time: new Date(user.createdAt).toLocaleString()
+      })),
+      ...recentOrders.map(order => ({
+        type: 'order',
+        icon: "icon-shopping-cart",
+        iconColor: "green",
+        title: "New Order Placed",
+        description: `Order #${order._id.toString().slice(-6)} by ${order.userId?.name || 'Guest'}`,
+        status: order.orderStatus || "Pending",
+        timestamp: order.createdAt,
+        time: new Date(order.createdAt).toLocaleString()
+      })),
+      ...recentBrands.map(brand => ({
+        type: 'brand',
+        icon: "icon-award",
+        iconColor: "purple",
+        title: "Brand Registration",
+        description: `${brand.name} requested verification`,
+        status: brand.isApproved ? "Approved" : "Pending",
+        timestamp: brand.createdAt,
+        time: new Date(brand.createdAt).toLocaleString()
+      }))
+    ];
+
+    // Sort all by most recent
+    const recentActivities = allActivities
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(0, 8); // Show top 8 recent activities
 
     res.json({
       totalUsers,
@@ -190,9 +227,21 @@ export const updateSettings = async (req, res) => {
 export const getAllBrands = async (req, res) => {
   try {
     const brands = await Brand.find()
-      .populate("owner", "name email role");
+      .populate("owner", "name email role tempPassword");
 
-    res.json(brands);
+    // Fix for older brands: if tempPassword is null, populate it based on brand name pattern
+    const brandsWithPasswords = await Promise.all(brands.map(async (brand) => {
+      if (brand.isApproved && brand.owner && !brand.owner.tempPassword) {
+        const guessedPassword = brand.name.replace(/\s+/g, '').toLowerCase();
+        
+        // Update user in DB so it's permanently visible
+        await User.findByIdAndUpdate(brand.owner._id, { tempPassword: guessedPassword });
+        brand.owner.tempPassword = guessedPassword;
+      }
+      return brand;
+    }));
+
+    res.json(brandsWithPasswords);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -209,6 +258,7 @@ export const updateBrandStatus = async (req, res) => {
     }
 
     brand.isApproved = isApproved;
+    brand.status = isApproved ? "approved" : "rejected";
     await brand.save();
 
     res.json({
@@ -228,9 +278,30 @@ export const deleteBrand = async (req, res) => {
       return res.status(404).json({ message: "Brand not found" });
     }
 
+    // Delete associated files from filesystem
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const filesToDelete = [brand.logo, brand.bannerImage, brand.heroImage, brand.verificationDocument].filter(Boolean);
+
+    filesToDelete.forEach(file => {
+      // Handles both absolute-ish saved paths and just filenames
+      const fileName = path.basename(file);
+      const possiblePaths = [
+        path.join('uploads/', fileName),
+        path.join('uploads/brands/', fileName)
+      ];
+
+      possiblePaths.forEach(p => {
+        if (fs.existsSync(p)) {
+          fs.unlinkSync(p);
+        }
+      });
+    });
+
     await Brand.findByIdAndDelete(req.params.id);
 
-    res.json({ message: "Brand deleted successfully" });
+    res.json({ message: "Brand and associated assets deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -239,7 +310,10 @@ export const deleteBrand = async (req, res) => {
 // GET PENDING VERIFICATIONS (PENDING BRANDS)
 export const getPendingVerifications = async (req, res) => {
   try {
-    const pendingBrands = await Brand.find({ isApproved: false })
+    const pendingBrands = await Brand.find({
+      isApproved: false,
+      status: { $ne: "rejected" }
+    })
       .populate("owner", "name email role");
 
     res.json(pendingBrands);
@@ -256,13 +330,46 @@ export const approveVerification = async (req, res) => {
       return res.status(404).json({ message: "Brand not found" });
     }
 
+    // Check if brand already has an owner (already approved)
+    if (brand.owner) {
+      return res.status(400).json({ message: "Brand is already verified and has an owner" });
+    }
+
+    // Use Brand Name as password (remove spaces, lowercase)
+    const generatedPassword = brand.name.replace(/\s+/g, '').toLowerCase();
+
+    // Create new User for Brand Owner
+    const salt = await import("bcryptjs").then(m => m.default.genSalt(10));
+    const hashedPassword = await import("bcryptjs").then(m => m.default.hash(generatedPassword, salt));
+
+    const newUser = new User({
+      name: brand.name + " Owner",
+      email: brand.businessEmail,
+      password: hashedPassword,
+      tempPassword: generatedPassword, // STORE PLAIN PASSWORD TEMPORARILY
+      role: "brand"
+    });
+
+    await newUser.save();
+
+    // Link User to Brand and Approve
+    brand.owner = newUser._id;
     brand.isApproved = true;
+    brand.status = "approved";
     await brand.save();
 
+    // Send Approval Email with Credentials (Non-blocking)
+    sendBrandApprovalEmail(brand.businessEmail, brand.name, generatedPassword);
+
     res.json({
-      message: "Brand verified successfully",
-      brand
+      message: "Brand verified successfully. Account created.",
+      brand,
+      credentials: {
+        email: brand.businessEmail,
+        password: generatedPassword
+      }
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -271,13 +378,29 @@ export const approveVerification = async (req, res) => {
 // REJECT VERIFICATION
 export const rejectVerification = async (req, res) => {
   try {
+    const { reason } = req.body;
+    console.log(`Rejecting Brand ID: ${req.params.id} with reason: ${reason}`);
+
     const brand = await Brand.findById(req.params.id);
     if (!brand) {
+      console.log(`Brand not found: ${req.params.id}`);
       return res.status(404).json({ message: "Brand not found" });
     }
 
+    console.log(`Brand found: ${brand.name}, Business Email: ${brand.businessEmail}`);
+
     brand.isApproved = false;
+    brand.status = "rejected";
+    brand.rejectionReason = reason || "";
     await brand.save();
+
+    console.log(`Status updated to 'rejected' in database`);
+
+    // Send Rejection Email (Non-blocking)
+    if (reason) {
+      console.log(`Queuing rejection email for ${brand.businessEmail}...`);
+      sendBrandRejectionEmail(brand.businessEmail, brand.name, reason);
+    }
 
     res.json({
       message: "Brand verification rejected",
@@ -344,7 +467,7 @@ export const deleteOrder = async (req, res) => {
 export const uploadBrandImage = async (req, res) => {
   try {
     const { brandId } = req.body;
-    
+
     if (!req.file) {
       return res.status(400).json({ message: "No image file provided" });
     }
@@ -372,6 +495,30 @@ export const uploadBrandImage = async (req, res) => {
       brand,
       imageUrl: `/uploads/brands/${req.file.filename}`
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// REMOVE HERO IMAGE
+export const removeHeroImage = async (req, res) => {
+  try {
+    const brand = await Brand.findById(req.params.id);
+    if (!brand) return res.status(404).json({ message: "Brand not found" });
+
+    if (brand.heroImage) {
+      const fs = await import('fs');
+      const path = await import('path');
+      const oldImagePath = path.join('uploads/brands/', path.basename(brand.heroImage));
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+
+    brand.heroImage = "";
+    await brand.save();
+
+    res.json({ message: "Hero image removed successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -460,6 +607,65 @@ export const deleteCategory = async (req, res) => {
   }
 };
 
+// ADD SUB-CATEGORY
+export const addSubCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const { name, description } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ message: "Sub-category name is required" });
+    }
+
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Check if sub-category already exists in this category
+    const exists = category.subCategories.some(sub => 
+      sub.name && name && sub.name.toLowerCase() === name.toLowerCase()
+    );
+    if (exists) {
+      return res.status(400).json({ message: "Sub-category already exists in this category" });
+    }
+
+    category.subCategories.push({ name: name.trim(), description: description || "" });
+    await category.save();
+
+    res.status(201).json({
+      message: "Sub-category added successfully",
+      category
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// DELETE SUB-CATEGORY
+export const deleteSubCategory = async (req, res) => {
+  try {
+    const { categoryId, subCategoryId } = req.params;
+
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    category.subCategories = category.subCategories.filter(
+      sub => sub._id.toString() !== subCategoryId
+    );
+
+    await category.save();
+    res.json({
+      message: "Sub-category deleted successfully",
+      category
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ========== PRODUCT MANAGEMENT ==========
 
 // GET ALL PRODUCTS (Admin)
@@ -513,7 +719,7 @@ export const getAllProducts = async (req, res) => {
 // CREATE PRODUCT (Admin)
 export const createProduct = async (req, res) => {
   try {
-    const { name, description, price, category, brand, stock, images, isActive } = req.body;
+    const { name, description, price, category, subCategory, brand, stock, images, isActive, sizeChart } = req.body;
 
     if (!name || !price || !category) {
       return res.status(400).json({ message: "Name, price, and category are required" });
@@ -524,10 +730,12 @@ export const createProduct = async (req, res) => {
       description: description || "",
       price: parseFloat(price),
       category,
+      subCategory: subCategory || "",
       brand,
       stock: parseInt(stock) || 0,
       images: images || [],
-      isActive: isActive !== undefined ? isActive : true
+      isActive: isActive !== undefined ? isActive : true,
+      sizeChart: sizeChart || null
     });
 
     await product.save();
@@ -545,7 +753,7 @@ export const createProduct = async (req, res) => {
 // UPDATE PRODUCT (Admin)
 export const updateProduct = async (req, res) => {
   try {
-    const { name, description, price, category, brand, stock, images, isActive } = req.body;
+    const { name, description, price, category, subCategory, brand, stock, images, isActive, sizeChart } = req.body;
 
     const product = await Product.findById(req.params.id);
     if (!product) {
@@ -557,10 +765,12 @@ export const updateProduct = async (req, res) => {
     if (description !== undefined) product.description = description;
     if (price !== undefined) product.price = parseFloat(price);
     if (category !== undefined) product.category = category;
+    if (subCategory !== undefined) product.subCategory = subCategory;
     if (brand !== undefined) product.brand = brand;
     if (stock !== undefined) product.stock = parseInt(stock);
     if (images !== undefined) product.images = images;
     if (isActive !== undefined) product.isActive = isActive;
+    if (sizeChart !== undefined) product.sizeChart = sizeChart;
 
     await product.save();
     await product.populate('brand', 'name');
@@ -582,9 +792,29 @@ export const deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    // Delete associated images and sizeChart from filesystem
+    const fs = await import('fs');
+    const path = await import('path');
+
+    if (product.images && product.images.length > 0) {
+      product.images.forEach(img => {
+        const imgPath = path.join('uploads/', img);
+        if (fs.existsSync(imgPath)) {
+          fs.unlinkSync(imgPath);
+        }
+      });
+    }
+
+    if (product.sizeChart) {
+      const sizeChartPath = path.join('uploads/', product.sizeChart);
+      if (fs.existsSync(sizeChartPath)) {
+        fs.unlinkSync(sizeChartPath);
+      }
+    }
+
     await Product.findByIdAndDelete(req.params.id);
     res.json({
-      message: "Product deleted successfully"
+      message: "Product and associated images deleted successfully"
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

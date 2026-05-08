@@ -1,0 +1,5 @@
+Connecting to DB: mongodb+srv://hyberistics7617_db_user:On7LrwaYWqMvugeN@cluster0.5od8xrz.mongodb.net/fashionverse
+Connected.
+
+Admin user found. verifying role...
+✅ Admin password reset to 'admin123' and role verified.

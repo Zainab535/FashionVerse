@@ -176,10 +176,10 @@
 }
 
 .account-tab.active {
-  background: #2d7d5a;
+  background: #1a1a1a;
   color: #fff;
-  border-color: #2d7d5a;
-  box-shadow: 0 4px 16px rgba(45, 125, 90, 0.2);
+  border-color: #1a1a1a;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 /* =========================
@@ -211,9 +211,9 @@
 
 .register-success {
   padding: 14px 16px;
-  background: linear-gradient(135deg, #e8f5e9 0%, #ddedda 100%);
-  border: 1.5px solid #51cf66;
-  color: #2d7d5a;
+  background: #f0fdf4;
+  border: 1.5px solid #1a1a1a;
+  color: #1a1a1a;
   border-radius: 10px;
   font-size: 13px;
   margin-bottom: 24px;
@@ -240,6 +240,37 @@
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }
+
+.required-star {
+  color: #e74c3c;
+  font-weight: 800;
+  font-size: 15px;
+  margin-left: 2px;
+}
+
+.field-error {
+  display: block;
+  color: #e74c3c;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+  padding-left: 2px;
+  letter-spacing: 0.2px;
+  animation: fieldErrorIn 0.3s ease-out;
+}
+
+@keyframes fieldErrorIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 .register-input,
 .register-input[type="text"],
@@ -275,9 +306,9 @@
 .register-input[type="url"]:focus,
 .register-input select:focus {
   outline: none;
-  border-color: #2d7d5a;
+  border-color: #1a1a1a;
   background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(45, 125, 90, 0.1);
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
 }
 
 .register-input select {
@@ -396,9 +427,9 @@
 }
 
 .file-upload-area:hover {
-  border-color: #2d7d5a;
-  background: linear-gradient(135deg, #f5f8f6 0%, #eff4f1 100%);
-  box-shadow: 0 8px 24px rgba(45, 125, 90, 0.08);
+  border-color: #1a1a1a;
+  background: #fafafa;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .upload-icon {
@@ -488,7 +519,7 @@
   height: 20px;
   margin-top: 2px;
   cursor: pointer;
-  accent-color: #2d7d5a;
+  accent-color: #1a1a1a;
   flex-shrink: 0;
   border-radius: 4px;
   transition: all 0.2s ease;
@@ -515,8 +546,8 @@
 }
 
 .link:hover {
-  color: #1f5a3f;
-  border-bottom-color: #1f5a3f;
+  color: #000;
+  border-bottom-color: #000;
 }
 
 /* =========================
@@ -526,7 +557,7 @@
 .register-button {
   width: 100%;
   padding: 16px 24px;
-  background: linear-gradient(135deg, #2d7d5a 0%, #1f5a3f 100%);
+  background: #1a1a1a;
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -538,7 +569,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  box-shadow: 0 6px 20px rgba(45, 125, 90, 0.25);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: hidden;
   animation: slideInUp 0.5s ease-out;
@@ -557,8 +588,8 @@
 
 .register-button:hover:not(:disabled) {
   transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(45, 125, 90, 0.35);
-  background: linear-gradient(135deg, #1f5a3f 0%, #154a30 100%);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  background: #333;
 }
 
 .register-button:hover::before {

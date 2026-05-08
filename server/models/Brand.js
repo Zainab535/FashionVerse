@@ -6,16 +6,62 @@ const brandSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    // Owner is initially null, assigned upon approval
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: false
+    },
+    businessEmail: {
+      type: String,
       required: true
+    },
+    websiteUrl: {
+      type: String,
+      required: true
+    },
+    category: {
+      type: String,
+      required: true
+    },
+    description: {
+      type: String,
+      default: ""
+    },
+    supportEmail: {
+      type: String,
+      default: ""
+    },
+    phone: {
+      type: String,
+      default: ""
+    },
+    logo: {
+      type: String,
+      default: ""
+    },
+    bannerImage: {
+      type: String,
+      default: ""
+    },
+    heroImage: {
+      type: String,
+      default: ""
+    },
+    verificationDocument: {
+      type: String,
+      required: false // path to uploaded file
     },
     isApproved: {
       type: Boolean,
       default: false
     },
-    heroImage: {
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending"
+    },
+    rejectionReason: {
       type: String,
       default: ""
     }

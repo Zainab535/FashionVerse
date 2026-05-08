@@ -663,60 +663,60 @@
   .dashboard-content {
     padding: 16px 12px;
   }
-  
+
   .header-content {
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
   }
-  
+
   .header-actions {
     width: 100%;
     justify-content: stretch;
   }
-  
+
   .export-btn,
   .add-user-btn {
     flex: 1;
     justify-content: center;
   }
-  
+
   .pending-verifications-section,
   .brand-assets-section,
   .store-categories-section {
     padding: 16px;
   }
-  
+
   .verifications-table {
     font-size: 12px;
   }
-  
+
   .verifications-table th,
   .verifications-table td {
     padding: 12px 16px;
   }
-  
+
   .brand-name-cell {
     gap: 8px;
   }
-  
+
   .brand-initials {
     width: 32px;
     height: 32px;
     font-size: 12px;
   }
-  
+
   .section-header-with-add {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
-  
+
   .add-new-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .upload-area {
     padding: 24px 16px;
   }
@@ -726,29 +726,29 @@
   .header-info h1 {
     font-size: 24px;
   }
-  
+
   .verifications-table {
     display: block;
     overflow-x: auto;
   }
-  
+
   .verifications-table th,
   .verifications-table td {
     padding: 10px 12px;
     white-space: nowrap;
   }
-  
+
   .verification-actions {
     gap: 4px;
   }
-  
+
   .reject-btn,
   .approve-btn {
     width: 36px;
     height: 36px;
     font-size: 16px;
   }
-  
+
   .category-item {
     padding: 12px;
   }
@@ -766,6 +766,58 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+}
+
+.modal-content {
+  background: var(--md-surface);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Rejection Modal Specifics */
+.modal-header.rejection {
+  border-bottom: 2px solid #fee2e2;
+}
+
+.modal-header.rejection h3 {
+  color: #991b1b;
+}
+
+.rejection-reason-box {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.rejection-reason-box:focus {
+  outline: none;
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px #fecaca;
+}
+
+.rejection-notice {
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #cf1322;
+}
+
+.rejection-notice strong {
+  display: block;
+  margin-bottom: 4px;
 }
 
 .modal-content {
@@ -1026,6 +1078,7 @@
   color: var(--md-on-surface);
   font-size: 14px;
 }
+
 /* Category Form Styles */
 .category-form {
   background: var(--md-surface-variant);

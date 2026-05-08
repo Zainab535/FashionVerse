@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import StoreNavbar from "../components/StoreNavbar";
-import StoreFooter from "../components/StoreFooter";
+import ProductFooter from "../components/ProductFooter";
+import Breadcrumbs from "../components/Breadcrumbs";
+import api from "../api";
 import "../styles/Contact.css";
 
 class ContactPage extends Component {
@@ -13,6 +15,8 @@ class ContactPage extends Component {
       message: "",
     },
     submitted: false,
+    loading: false,
+    error: null
   };
 
   handleInputChange = (e) => {
@@ -25,27 +29,37 @@ class ContactPage extends Component {
     }));
   };
 
-  handleSubmit = (e) => {
+  handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here (send to backend or email service)
-    console.log("Form submitted:", this.state.formData);
-    
-    // Show success message
-    this.setState({ submitted: true });
-    
-    // Reset form after 3 seconds
-    setTimeout(() => {
+    this.setState({ loading: true, error: null });
+
+    try {
+      await api.post("/contact/submit", this.state.formData);
+
       this.setState({
+        submitted: true,
+        loading: false,
         formData: {
           name: "",
           email: "",
           phone: "",
           subject: "",
           message: "",
-        },
-        submitted: false,
+        }
       });
-    }, 3000);
+
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        this.setState({ submitted: false });
+      }, 5000);
+
+    } catch (err) {
+      console.error("Submission error:", err);
+      this.setState({
+        error: err.response?.data?.message || "Failed to send message. Please try again.",
+        loading: false
+      });
+    }
   };
 
   render() {
@@ -55,6 +69,9 @@ class ContactPage extends Component {
       <>
         <StoreNavbar />
         <main className="contact-container">
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
+            <Breadcrumbs paths={[{ label: "Contact Us", url: "/contact" }]} />
+          </div>
           {/* Hero Section */}
           <section className="contact-hero">
             <div className="contact-hero-content">
@@ -69,7 +86,7 @@ class ContactPage extends Component {
               {/* Contact Info */}
               <div className="contact-info">
                 <h2>Contact Information</h2>
-                
+
                 <div className="info-card">
                   <h3>📍 Location</h3>
                   <p>
@@ -107,10 +124,16 @@ class ContactPage extends Component {
               {/* Contact Form */}
               <div className="contact-form-wrapper">
                 <h2>Send us a Message</h2>
-                
+
                 {submitted && (
                   <div className="success-message">
                     ✓ Thank you! Your message has been sent successfully. We'll get back to you soon.
+                  </div>
+                )}
+
+                {this.state.error && (
+                  <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}>
+                    ✕ {this.state.error}
                   </div>
                 )}
 
@@ -179,15 +202,15 @@ class ContactPage extends Component {
                     ></textarea>
                   </div>
 
-                  <button type="submit" className="submit-btn">
-                    Send Message
+                  <button type="submit" className="submit-btn" disabled={this.state.loading}>
+                    {this.state.loading ? "Sending..." : "Send Message"}
                   </button>
                 </form>
               </div>
             </div>
           </section>
         </main>
-        <StoreFooter />
+        <ProductFooter />
       </>
     );
   }

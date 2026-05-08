@@ -13,6 +13,7 @@ import {
   getAllBrands,
   updateBrandStatus,
   deleteBrand,
+  removeHeroImage,
   getPendingVerifications,
   approveVerification,
   rejectVerification,
@@ -24,6 +25,8 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  addSubCategory,
+  deleteSubCategory,
   getAllProducts,
   createProduct,
   updateProduct,
@@ -31,6 +34,7 @@ import {
   toggleProductStatus
 } from "../controllers/adminController.js";
 import { upload } from "../controllers/adminController.js";
+import { getAllMessages, getMessageById, deleteMessage, getUnreadCount } from "../controllers/contactController.js";
 
 const router = express.Router();
 
@@ -43,6 +47,7 @@ router.delete("/users/:id", verifyToken, adminOnly, deleteUser);
 router.get("/brands", verifyToken, adminOnly, getAllBrands);
 router.put("/brands/:id/status", verifyToken, adminOnly, updateBrandStatus);
 router.delete("/brands/:id", verifyToken, adminOnly, deleteBrand);
+router.delete("/brands/:id/hero-image", verifyToken, adminOnly, removeHeroImage);
 
 // ✅ VERIFICATION MANAGEMENT
 router.get("/verifications", verifyToken, adminOnly, getPendingVerifications);
@@ -67,6 +72,8 @@ router.get("/categories", verifyToken, adminOnly, getAllCategories);
 router.post("/categories", verifyToken, adminOnly, createCategory);
 router.put("/categories/:id", verifyToken, adminOnly, updateCategory);
 router.delete("/categories/:id", verifyToken, adminOnly, deleteCategory);
+router.post("/categories/:categoryId/subcategories", verifyToken, adminOnly, addSubCategory);
+router.delete("/categories/:categoryId/subcategories/:subCategoryId", verifyToken, adminOnly, deleteSubCategory);
 
 // 🛍️ PRODUCTS MANAGEMENT
 router.get("/products", verifyToken, adminOnly, getAllProducts);
@@ -74,5 +81,11 @@ router.post("/products", verifyToken, adminOnly, createProduct);
 router.put("/products/:id", verifyToken, adminOnly, updateProduct);
 router.delete("/products/:id", verifyToken, adminOnly, deleteProduct);
 router.put("/products/:id/toggle-status", verifyToken, adminOnly, toggleProductStatus);
+
+// ✉️ MESSAGE MANAGEMENT
+router.get("/messages", verifyToken, adminOnly, getAllMessages);
+router.get("/messages/unread-count", verifyToken, adminOnly, getUnreadCount);
+router.get("/messages/:id", verifyToken, adminOnly, getMessageById);
+router.delete("/messages/:id", verifyToken, adminOnly, deleteMessage);
 
 export default router;

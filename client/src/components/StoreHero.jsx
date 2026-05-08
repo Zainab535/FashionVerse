@@ -6,15 +6,15 @@ const StoreHero = () => {
   return (
     <section className="store-hero">
       <div className="hero-text">
-        <span className="season">FALL / WINTER 2024</span>
+        <span className="season">FALL / WINTER 2026</span>
         <h1>Future Wear</h1>
         <p>
           Experience fashion where minimal design meets immersive digital
           innovation. Discover curated collections from world-renowned designers.
         </p>
-        <Link to="/home">
-          <button>Shop Now</button>
-        </Link>
+        <button onClick={() => document.getElementById('brands')?.scrollIntoView({ behavior: 'smooth' })}>
+          Shop Now
+        </button>
       </div>
 
       <div className="hero-image">

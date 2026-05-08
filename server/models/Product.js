@@ -7,6 +7,10 @@ const productSchema = new mongoose.Schema(
       required: [true, 'Please provide a product name'],
       trim: true,
     },
+    sku: {
+      type: String,
+      trim: true,
+    },
     description: {
       type: String,
       required: [true, 'Please provide a description'],
@@ -25,6 +29,10 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, 'Please provide a category'],
+    },
+    subCategory: {
+      type: String,
+      required: false,
     },
     brand: {
       type: mongoose.Schema.Types.ObjectId,
@@ -56,7 +64,11 @@ const productSchema = new mongoose.Schema(
     },
     reviews: [
       {
-        userId: mongoose.Schema.Types.ObjectId,
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User'
+        },
+        title: String,
         comment: String,
         rating: Number,
         createdAt: {
@@ -68,6 +80,10 @@ const productSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    sizeChart: {
+      type: String,
+      default: null,
     },
   },
   { timestamps: true }

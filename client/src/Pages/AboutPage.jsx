@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import StoreNavbar from "../components/StoreNavbar";
-import StoreFooter from "../components/StoreFooter";
+import ProductFooter from "../components/ProductFooter";
+import Breadcrumbs from "../components/Breadcrumbs";
 import "../styles/About.css";
 
 class AboutPage extends Component {
@@ -9,6 +10,9 @@ class AboutPage extends Component {
       <>
         <StoreNavbar />
         <main className="about-container">
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
+            <Breadcrumbs paths={[{ label: "About Us", url: "/about" }]} />
+          </div>
           {/* Hero Section */}
           <section className="about-hero">
             <div className="about-hero-content">
@@ -85,7 +89,7 @@ class AboutPage extends Component {
             </div>
           </section>
         </main>
-        <StoreFooter />
+        <ProductFooter />
       </>
     );
   }

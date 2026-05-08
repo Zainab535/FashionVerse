@@ -14,6 +14,7 @@ const ManageProducts = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]); // Add brands state
 
   // Add Product Modal State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -23,6 +24,7 @@ const ManageProducts = () => {
     price: "",
     stock: "",
     category: "",
+    subCategory: "",
     brand: "", // In a real app, this might be auto-selected based on logged-in user or a dropdown
     images: []
   });
@@ -30,6 +32,7 @@ const ManageProducts = () => {
 
   useEffect(() => {
     fetchCategories();
+    fetchBrands(); // Fetch brands
     fetchProducts();
   }, [searchQuery, filterStatus, filterCategory, currentPage]);
 
@@ -39,10 +42,27 @@ const ManageProducts = () => {
       setCategories(response.data || []);
       // Set default category for new product if available
       if (response.data && response.data.length > 0) {
-        setNewProduct(prev => ({ ...prev, category: response.data[0].name }));
+        setNewProduct(prev => ({ 
+          ...prev, 
+          category: response.data[0].name,
+          subCategory: response.data[0].subCategories && response.data[0].subCategories.length > 0 ? response.data[0].subCategories[0].name : ""
+        }));
       }
     } catch (err) {
       console.error("Failed to fetch categories:", err);
+    }
+  };
+
+  // Fetch Brands
+  const fetchBrands = async () => {
+    try {
+      const response = await api.get('/admin/brands');
+      setBrands(response.data || []);
+      if (response.data && response.data.length > 0) {
+        setNewProduct(prev => ({ ...prev, brand: response.data[0]._id }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch brands:", err);
     }
   };
 
@@ -78,17 +98,7 @@ const ManageProducts = () => {
     }
   };
 
-  const handleDelete = async (productId) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      try {
-        await api.delete(`/admin/products/${productId}`);
-        setProducts(products.filter(product => product._id !== productId));
-        setTotalProducts(prev => prev - 1);
-      } catch (err) {
-        alert(err.response?.data?.message || "Failed to delete product");
-      }
-    }
-  };
+
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
@@ -146,6 +156,7 @@ const ManageProducts = () => {
         price: "",
         stock: "",
         category: categories.length > 0 ? categories[0].name : "",
+        subCategory: (categories.length > 0 && categories[0].subCategories?.length > 0) ? categories[0].subCategories[0].name : "",
         brand: "",
         images: []
       });
@@ -290,7 +301,7 @@ const ManageProducts = () => {
                   </td>
                   <td>
                     <span style={{ fontWeight: '600', color: '#1f2937' }}>
-                      ${product.price?.toFixed(2)}
+                      Rs. {product.price?.toLocaleString()}
                     </span>
                   </td>
                   <td>
@@ -321,13 +332,6 @@ const ManageProducts = () => {
                         style={{ background: '#eef2ff', color: '#667eea', borderColor: '#667eea' }}
                       >
                         Edit
-                      </button>
-                      <button
-                        className="task-action"
-                        onClick={() => handleDelete(product._id)}
-                        style={{ background: '#fee2e2', color: '#dc2626' }}
-                      >
-                        Delete
                       </button>
                     </div>
                   </td>
@@ -412,6 +416,36 @@ const ManageProducts = () => {
                 </div>
 
                 <div className="form-group" style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px' }}>Sub-Category</label>
+                  <select
+                    name="subCategory"
+                    value={newProduct.subCategory}
+                    onChange={handleAddProductChange}
+                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                  >
+                    <option value="">Select Sub-Category</option>
+                    {categories.find(c => c.name === newProduct.category)?.subCategories?.map((sub) => (
+                      <option key={sub._id} value={sub.name}>{sub.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px' }}>Brand</label>
+                  <select
+                    name="brand"
+                    value={newProduct.brand}
+                    onChange={handleAddProductChange}
+                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                  >
+                    <option value="">Select Brand</option>
+                    {brands.map((brand) => (
+                      <option key={brand._id} value={brand._id}>{brand.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '15px' }}>
                   <label style={{ display: 'block', marginBottom: '5px' }}>Description</label>
                   <textarea
                     name="description"
@@ -424,7 +458,7 @@ const ManageProducts = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                   <div className="form-group">
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Price ($)</label>
+                    <label style={{ display: 'block', marginBottom: '5px' }}>Price (Rs.)</label>
                     <input
                       type="number"
                       name="price"

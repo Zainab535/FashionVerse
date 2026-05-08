@@ -1,0 +1,16 @@
+Connected to MongoDB
+Registered Users:
+- admin (admin@myapp.com) [admin]
+- GULNAAR (hadiaijaz7617@gmail.com) [brandOwner]
+- PRISM (prism@gmail.com) [brandOwner]
+- artofgallery19@gmail.com (artofgallery19@gmail.com) [brandowner]
+- KINGSWARD (221400016@gift.edu.pk) [brandOwner]
+- RAHMEER Owner (221400097@gift.edu.pk) [brand]
+- MINIMEHR Owner (221400110@gift.edu.pk) [brand]
+- Momna (momnaasghar117@gmail.com) [customer]
+- XENIQUE Owner (zainabrasheed535@gmail.com) [brand]
+- ZARQ Owner (softsmarks@gmail.com) [brandowner]
+- LUMINA Owner (dr.shita0019@gmail.com) [brandowner]
+- Testing Owner (221400083@gift.edu.pk) [brand]
+- HadiaIjaz (221400060@gift.edu.pk) [customer]
+- hyberistics (hyberistics7617@gmail.com) [customer]

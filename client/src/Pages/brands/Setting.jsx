@@ -1,114 +1,431 @@
-import React, { Component } from "react";
-import "../../styles/brands/BrandDashboard.css";
+import React, { useState, useEffect } from "react";
+import api from "../../api";
+import "../../styles/admin/AdminSettings.css"; // Reusing existing styles if possible or adding specific ones
 
-class Setting extends Component {
-    render() {
-        return (
-            <div className="dash-wrapper">
-                {/* HEADER */}
-                <div className="subpage-header">
-                    <h1>Store Settings</h1>
-                </div>
+const Setting = () => {
+    const [activeTab, setActiveTab] = useState("store");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
 
-                {/* TABS */}
-                <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid #f1f5f9', marginBottom: '32px' }}>
-                    <button className="tab-btn active" style={{ borderRadius: 0, padding: '12px 4px', borderBottom: '2px solid #0ea5e9' }}>Store Profile</button>
-                    <button className="tab-btn" style={{ borderRadius: 0, padding: '12px 4px' }}>Account Security</button>
-                    <button className="tab-btn" style={{ borderRadius: 0, padding: '12px 4px' }}>Notifications</button>
-                </div>
+    // Brand State
+    const [brand, setBrand] = useState({
+        name: "",
+        description: "",
+        supportEmail: "",
+        phone: "",
+        logo: "",
+        bannerImage: ""
+    });
 
-                {/* SECTION: STORE BRANDING */}
-                <div className="form-section">
-                    <div className="section-title-v">Store Branding</div>
-                    <div className="branding-grid-v">
-                        <div className="form-group-v">
-                            <label className="label-v">Store Logo</label>
-                            <div className="logo-uploader-v">
-                                <div className="edit-btn-v">✎</div>
-                            </div>
-                        </div>
-                        <div className="form-group-v">
-                            <label className="label-v">Store Banner</label>
-                            <div className="banner-uploader-v">
-                                <span style={{ fontSize: '24px', opacity: 0.3 }}>🖼</span>
-                                <button className="change-banner-btn-v">
-                                    <span>⬆</span> Change Banner
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    // User State
+    const [user, setUser] = useState({
+        name: "",
+        email: ""
+    });
 
-                {/* SECTION: GENERAL INFO */}
-                <div className="form-section">
-                    <div className="section-title-v">General Information</div>
-                    <div className="form-grid-v">
-                        <div className="form-group-v">
-                            <label className="label-v">Store Name</label>
-                            <input type="text" className="input-v" defaultValue="Alexander McQueen Digital" />
-                        </div>
-                        <div className="form-group-v">
-                            <label className="label-v">Store URL</label>
-                            <div style={{ display: 'flex' }}>
-                                <div style={{ padding: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px 0 0 6px', fontSize: '11px', color: '#94a3b8' }}>fashionverse.io/</div>
-                                <input type="text" className="input-v" defaultValue="mcqueen-digital" style={{ borderRadius: '0 6px 6px 0' }} />
-                            </div>
-                        </div>
-                        <div className="form-group-v full-width">
-                            <label className="label-v">Store Description</label>
-                            <textarea className="textarea-v" defaultValue="A visionary exploration of luxury 3D fashion assets. Pushing the boundaries of digital ownership and avatar high-culture."></textarea>
-                        </div>
-                    </div>
-                </div>
+    // Password State
+    const [passwords, setPasswords] = useState({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+    });
 
-                {/* SECTION: CONTACT & SUPPORT */}
-                <div className="form-section">
-                    <div className="section-title-v">Contact & Support</div>
-                    <div className="form-grid-v">
-                        <div className="form-group-v">
-                            <label className="label-v">Support Email</label>
-                            <input type="email" className="input-v" defaultValue="support@mcqueen-digital.com" />
-                        </div>
-                        <div className="form-group-v">
-                            <label className="label-v">Business Phone</label>
-                            <input type="text" className="input-v" defaultValue="+44 20 7355 0088" />
-                        </div>
-                    </div>
-                </div>
+    // File State for previews and uploads
+    const [files, setFiles] = useState({
+        logo: null,
+        bannerImage: null
+    });
 
-                {/* SECTION: QUICK NOTIFICATIONS */}
-                <div className="form-section">
-                    <div className="section-title-v">Quick Notifications</div>
-                    <div className="toggle-item-v">
-                        <div className="toggle-info-v">
-                            <h4>Order Placement</h4>
-                            <p>Receive instant alerts when a new order is received.</p>
-                        </div>
-                        <label className="switch-v">
-                            <input type="checkbox" defaultChecked />
-                            <span className="slider-v"></span>
-                        </label>
-                    </div>
-                    <div className="toggle-item-v" style={{ borderTop: '1px solid #f1f5f9', marginTop: '10px', paddingTop: '10px' }}>
-                        <div className="toggle-info-v">
-                            <h4>Inventory Alerts</h4>
-                            <p>Get notified when stock levels for any 3D asset drop below 5 units.</p>
-                        </div>
-                        <label className="switch-v">
-                            <input type="checkbox" />
-                            <span className="slider-v"></span>
-                        </label>
-                    </div>
-                </div>
+    const [previews, setPreviews] = useState({
+        logo: null,
+        bannerImage: null
+    });
 
-                {/* FOOTER ACTIONS */}
-                <div className="footer-actions-v" style={{ border: 'none' }}>
-                    <button className="link-btn-v">Discard Changes</button>
-                    <button className="primary-btn" style={{ padding: '12px 32px' }}>Save Changes</button>
-                </div>
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    // Determine if current user can edit email (brand owners should not)
+    const role = localStorage.getItem("role");
+    const emailEditable = !(role === "brand" || role === "brandowner");
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [brandRes, userRes] = await Promise.all([
+                api.get("/brand/my-brand"),
+                api.get("/auth/profile")
+            ]);
+
+            setBrand(brandRes.data);
+            setUser({
+                name: userRes.data.name,
+                email: userRes.data.email
+            });
+            setLoading(false);
+        } catch (err) {
+            console.error("Failed to load settings:", err);
+            setError("Failed to load settings data.");
+            setLoading(false);
+        }
+    };
+
+    const handleBrandChange = (e) => {
+        const { name, value } = e.target;
+        setBrand(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleUserChange = (e) => {
+        const { name, value } = e.target;
+        setUser(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handlePasswordChange = (e) => {
+        const { name, value } = e.target;
+        setPasswords(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleFileChange = (e) => {
+        const { name, files } = e.target;
+        const file = files[0];
+        if (file) {
+            setFiles(prev => ({ ...prev, [name]: file }));
+            setPreviews(prev => ({ ...prev, [name]: URL.createObjectURL(file) }));
+        }
+    };
+
+    const saveBrandChanges = async () => {
+        try {
+            setSuccess(null);
+            setError(null);
+            const formData = new FormData();
+            formData.append("name", brand.name);
+            formData.append("description", brand.description);
+            formData.append("supportEmail", brand.supportEmail);
+            formData.append("phone", brand.phone);
+
+            if (files.logo) formData.append("logo", files.logo);
+            if (files.bannerImage) formData.append("bannerImage", files.bannerImage);
+
+            await api.put("/brand/update-profile", formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+            setSuccess("Brand settings updated successfully!");
+            // Refresh data to show updated images from server
+            setTimeout(fetchData, 1000);
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to update brand settings.");
+        }
+    };
+
+    const saveAccountChanges = async () => {
+        try {
+            setSuccess(null);
+            setError(null);
+            await api.put("/auth/profile", user);
+            setSuccess("Account profile updated successfully!");
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to update account settings.");
+        }
+    };
+
+    const updatePassword = async () => {
+        try {
+            setSuccess(null);
+            setError(null);
+
+            if (passwords.newPassword !== passwords.confirmPassword) {
+                setError("New passwords do not match.");
+                return;
+            }
+
+            if (passwords.newPassword.length < 6) {
+                setError("Password must be at least 6 characters.");
+                return;
+            }
+
+            await api.put("/auth/password", {
+                currentPassword: passwords.currentPassword,
+                newPassword: passwords.newPassword
+            });
+
+            setSuccess("Password updated successfully!");
+            setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to update password.");
+        }
+    };
+
+    if (loading) return <div className="dash-wrapper"><div className="loader">Loading settings...</div></div>;
+
+    return (
+        <div className="dash-wrapper">
+            <div className="subpage-header">
+                <h1>Settings</h1>
+                <p>Manage your store profile and account security</p>
             </div>
-        );
-    }
-}
+
+            {/* Notifications */}
+            {error && <div className="alert alert-error" style={{ marginBottom: '20px', padding: '12px', background: '#fee2e2', color: '#dc2626', borderRadius: '8px' }}>{error}</div>}
+            {success && <div className="alert alert-success" style={{ marginBottom: '20px', padding: '12px', background: '#dcfce7', color: '#16a34a', borderRadius: '8px' }}>{success}</div>}
+
+            {/* TABS */}
+            <div className="tabs-container" style={{ display: 'flex', gap: '32px', borderBottom: '1px solid #f1f5f9', marginBottom: '32px' }}>
+                <button
+                    className={`tab-btn ${activeTab === 'store' ? 'active' : ''}`}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: '12px 4px',
+                        cursor: 'pointer',
+                        fontWeight: activeTab === 'store' ? '600' : '400',
+                        color: activeTab === 'store' ? '#0ea5e9' : '#64748b',
+                        borderBottom: activeTab === 'store' ? '2px solid #0ea5e9' : 'none'
+                    }}
+                    onClick={() => { setActiveTab('store'); setError(null); setSuccess(null); }}
+                >
+                    Store Profile
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'account' ? 'active' : ''}`}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: '12px 4px',
+                        cursor: 'pointer',
+                        fontWeight: activeTab === 'account' ? '600' : '400',
+                        color: activeTab === 'account' ? '#0ea5e9' : '#64748b',
+                        borderBottom: activeTab === 'account' ? '2px solid #0ea5e9' : 'none'
+                    }}
+                    onClick={() => { setActiveTab('account'); setError(null); setSuccess(null); }}
+                >
+                    Account Security
+                </button>
+            </div>
+
+            {activeTab === "store" ? (
+                <div className="settings-content animate-fade-in">
+                    {/* SECTION: STORE BRANDING */}
+                    <div className="form-section">
+                        <div className="section-title-v">Store Branding</div>
+                        <div className="branding-grid-v" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '40px', alignItems: 'start' }}>
+                            <div className="form-group-v">
+                                <label className="label-v">Store Logo</label>
+                                <div className="logo-uploader-v" style={{
+                                    width: '120px',
+                                    height: '120px',
+                                    borderRadius: '12px',
+                                    border: '2px dashed #e2e8f0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    background: '#f8fafc'
+                                }}>
+                                    {(previews.logo || brand.logo) && (
+                                        <img
+                                            src={previews.logo || `http://localhost:5000/uploads/${brand.logo}`}
+                                            alt="Logo Preview"
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    )}
+                                    <div className="upload-overlay" style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        background: 'rgba(0,0,0,0.4)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        opacity: previews.logo || brand.logo ? 0 : 1,
+                                        transition: 'opacity 0.2s',
+                                        color: 'white',
+                                        cursor: 'pointer'
+                                    }}>
+                                        <span>Click to Upload</span>
+                                    </div>
+                                    <input type="file" name="logo" onChange={handleFileChange} style={{ position: 'absolute', opacity: 0, cursor: 'pointer', inset: 0 }} />
+                                </div>
+                            </div>
+                            <div className="form-group-v">
+                                <label className="label-v">Store Banner</label>
+                                <div className="banner-uploader-v" style={{
+                                    width: '100%',
+                                    height: '160px',
+                                    borderRadius: '12px',
+                                    border: '2px dashed #e2e8f0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    background: '#f8fafc'
+                                }}>
+                                    {(previews.bannerImage || brand.bannerImage) ? (
+                                        <img
+                                            src={previews.bannerImage || `http://localhost:5000/uploads/${brand.bannerImage}`}
+                                            alt="Banner Preview"
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    ) : (
+                                        <div style={{ textAlign: 'center', color: '#94a3b8' }}>
+                                            <span style={{ fontSize: '32px' }}>🖼</span>
+                                            <p>Upload Store Banner</p>
+                                        </div>
+                                    )}
+                                    <input type="file" name="bannerImage" onChange={handleFileChange} style={{ position: 'absolute', opacity: 0, cursor: 'pointer', inset: 0 }} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* SECTION: GENERAL INFO */}
+                    <div className="form-section" style={{ marginTop: '32px' }}>
+                        <div className="section-title-v">General Information</div>
+                        <div className="form-grid-v" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+                            <div className="form-group-v">
+                                <label className="label-v">Store Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    className="input-v"
+                                    value={brand.name}
+                                    onChange={handleBrandChange}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                />
+                            </div>
+                            <div className="form-group-v">
+                                <label className="label-v">Store Description</label>
+                                <textarea
+                                    name="description"
+                                    className="textarea-v"
+                                    rows="4"
+                                    value={brand.description}
+                                    onChange={handleBrandChange}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* SECTION: CONTACT & SUPPORT */}
+                    <div className="form-section" style={{ marginTop: '32px' }}>
+                        <div className="section-title-v">Contact & Support</div>
+                        <div className="form-grid-v" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            <div className="form-group-v">
+                                <label className="label-v">Support Email</label>
+                                <input
+                                    type="email"
+                                    name="supportEmail"
+                                    className="input-v"
+                                    value={brand.supportEmail}
+                                    onChange={handleBrandChange}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                />
+                            </div>
+                            <div className="form-group-v">
+                                <label className="label-v">Business Phone</label>
+                                <input
+                                    type="text"
+                                    name="phone"
+                                    className="input-v"
+                                    value={brand.phone}
+                                    onChange={handleBrandChange}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="footer-actions-v" style={{ marginTop: '40px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <button className="primary-btn" onClick={saveBrandChanges}>Save Brand Changes</button>
+                    </div>
+                </div>
+            ) : (
+                <div className="settings-content animate-fade-in">
+                    <div className="form-section">
+                        <div className="section-title-v">Personal Information</div>
+                        <div className="form-grid-v" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            <div className="form-group-v">
+                                <label className="label-v">Full Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    className="input-v"
+                                    value={user.name}
+                                    onChange={handleUserChange}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                />
+                            </div>
+                            <div className="form-group-v">
+                                <label className="label-v">Email Address</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    className="input-v"
+                                    value={user.email}
+                                    onChange={emailEditable ? handleUserChange : undefined}
+                                    readOnly={!emailEditable}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: !emailEditable ? '#f8fafc' : undefined }}
+                                />
+                                {!emailEditable && (
+                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+                                        Email cannot be changed from this panel.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="footer-actions-v" style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button className="primary-btn" onClick={saveAccountChanges}>Update Profile</button>
+                        </div>
+                    </div>
+
+                    <div className="form-section" style={{ marginTop: '48px', borderTop: '1px solid #f1f5f9', paddingTop: '32px' }}>
+                        <div className="section-title-v">Change Password</div>
+                        <div className="form-grid-v" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', maxWidth: '500px' }}>
+                            <div className="form-group-v">
+                                <label className="label-v">Current Password</label>
+                                <input
+                                    type="password"
+                                    name="currentPassword"
+                                    className="input-v"
+                                    value={passwords.currentPassword}
+                                    onChange={handlePasswordChange}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                />
+                            </div>
+                            <div className="form-group-v">
+                                <label className="label-v">New Password</label>
+                                <input
+                                    type="password"
+                                    name="newPassword"
+                                    className="input-v"
+                                    value={passwords.newPassword}
+                                    onChange={handlePasswordChange}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                />
+                            </div>
+                            <div className="form-group-v">
+                                <label className="label-v">Confirm New Password</label>
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    className="input-v"
+                                    value={passwords.confirmPassword}
+                                    onChange={handlePasswordChange}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                />
+                            </div>
+                            <div className="footer-actions-v" style={{ marginTop: '10px', display: 'flex' }}>
+                                <button className="primary-btn" onClick={updatePassword}>Update Password</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export default Setting;
